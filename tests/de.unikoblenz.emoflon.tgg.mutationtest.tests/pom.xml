@@ -19,7 +19,6 @@
         <artifactId>tycho-surefire-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>
-          <!--<skipTests>true</skipTests>-->
           <argLine>${surefireArgLine}</argLine>
           <deleteOsgiDataDirectory>false</deleteOsgiDataDirectory>
    	      <useUIHarness>false</useUIHarness>

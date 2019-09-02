@@ -35,12 +35,24 @@
 
   <dependencies>
     <!--bundles/-->
+    <dependency>
+        <groupId>de.unikoblenz.emoflon.tgg.mutationtest</groupId>
+        <artifactId>de.unikoblenz.emoflon.tgg.mutationtest</artifactId>
+       <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>   
+    <dependency>
+        <groupId>de.unikoblenz.emoflon.tgg.mutationtest</groupId>
+        <artifactId>de.unikoblenz.emoflon.tgg.mutationtest.ui</artifactId>
+       <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>   
     <!--tests/-->
-<!--    <dependency>
+    <dependency>
         <groupId>de.unikoblenz.emoflon.tgg.mutationtest</groupId>
         <artifactId>de.unikoblenz.emoflon.tgg.mutationtest.tests</artifactId>
        <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
-    </dependency>-->
+    </dependency>
   </dependencies>
 </project>

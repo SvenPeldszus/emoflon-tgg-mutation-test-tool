@@ -34,6 +34,7 @@ import org.gravity.eclipse.io.GitTools;
 import org.gravity.eclipse.util.EclipseProjectUtil;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runners.model.InitializationError;
 import org.moflon.tgg.mosl.TGGStandaloneSetup;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
@@ -57,27 +58,30 @@ public class TGGRuleUtilTest {
 	 * A test for loading all tgg rules from the eMoflon handbook example
 	 * "socialNetworkSynchronisation"
 	 * 
-	 * @throws IOException
-	 * @throws GitCloneException
-	 * @throws CoreException
+	 * @throws InitializationError If the initialization of the test case failed
 	 */
 	@Test
-	public void loadTGGRuleTest() throws IOException, GitCloneException, CoreException {
+	public void loadTGGRuleTest() throws InitializationError {
 		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
 				"socialNetworkSynchronisation/version1/");
 		Path projectPath = project.getLocation().toFile().toPath();
-		TGGRuleUtil util = new TGGRuleUtil(project);
-		ExtensionFileVisitor visitor = new ExtensionFileVisitor("tgg");
-		project.accept(visitor);
-		for (Path ruleFile : visitor.getFiles()) {
-			if (ruleFile.isAbsolute()) {
-				ruleFile = projectPath.relativize(ruleFile);
+		try {
+			TGGRuleUtil util = new TGGRuleUtil(project);
+			ExtensionFileVisitor visitor = new ExtensionFileVisitor("tgg");
+			project.accept(visitor);
+			for (Path ruleFile : visitor.getFiles()) {
+				if (ruleFile.isAbsolute()) {
+					ruleFile = projectPath.relativize(ruleFile);
+				}
+				if (IbexTGGNature.SCHEMA_FILE.equals(ruleFile.toString())) {
+					continue;
+				}
+				TripleGraphGrammarFile rule = util.loadRule(project.getFile(ruleFile.toString()));
+				assertNotNull(rule);
 			}
-			if (IbexTGGNature.SCHEMA_FILE.equals(ruleFile.toString())) {
-				continue;
-			}
-			TripleGraphGrammarFile rule = util.loadRule(project.getFile(ruleFile.toString()));
-			assertNotNull(rule);
+		} catch (IOException | CoreException e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new InitializationError(e);
 		}
 	}
 
@@ -149,17 +153,23 @@ public class TGGRuleUtilTest {
 	 * @param folder A folder within the repository containing the projects to
 	 *               import
 	 * @return The TGG project
-	 * @throws IOException
-	 * @throws CoreException
-	 * @throws GitCloneException
+	 * @throws InitializationError If the initialization of the test failed
 	 */
-	private IProject checkoutAndGetTGGProject(String url, String folder)
-			throws IOException, CoreException, GitCloneException {
-		File tmp = Files.createTempDirectory("eMoflonExamples").toFile();
+	private IProject checkoutAndGetTGGProject(String url, String folder) throws InitializationError {
+		File tmp;
+		try {
+			tmp = Files.createTempDirectory("eMoflonExamples").toFile();
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new InitializationError(e);
+		}
 		try (GitTools git = new GitTools(url, tmp)) {
 			List<IProject> projects = EclipseProjectUtil.importProjects(new File(tmp.listFiles()[0], folder),
 					new NullProgressMonitor());
 			return getAnyTGGProject(projects);
+		} catch (IOException | GitCloneException | CoreException e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new InitializationError(e);
 		}
 	}
 
@@ -169,9 +179,9 @@ public class TGGRuleUtilTest {
 	 * 
 	 * @param projects A list of eclipse project
 	 * @return A eMoflon TGG project if present in the list
-	 * @throws IllegalStateException if no TGG project is contained in the list
+	 * @throws InitializationError if no TGG project is contained in the list
 	 */
-	private IProject getAnyTGGProject(List<IProject> projects) throws IllegalStateException {
+	private IProject getAnyTGGProject(List<IProject> projects) throws InitializationError {
 		Optional<IProject> result = projects.parallelStream().filter(p -> {
 			try {
 				return p.getNature(IbexTGGNature.IBEX_TGG_NATURE_ID) != null;
@@ -181,7 +191,7 @@ public class TGGRuleUtilTest {
 			}
 		}).findAny();
 		if (!result.isPresent()) {
-			throw new IllegalStateException("Couldn't load the TGG project!");
+			throw new InitializationError("Couldn't load the TGG project!");
 		}
 		return result.get();
 	}
