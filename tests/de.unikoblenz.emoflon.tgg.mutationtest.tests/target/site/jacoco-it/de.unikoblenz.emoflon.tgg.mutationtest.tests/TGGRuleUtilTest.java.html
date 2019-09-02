@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TGGRuleUtilTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">de.unikoblenz.emoflon.tgg.mutationtest.tests</a> &gt; <a href="index.source.html" class="el_package">de.unikoblenz.emoflon.tgg.mutationtest.tests</a> &gt; <span class="el_source">TGGRuleUtilTest.java</span></div><h1>TGGRuleUtilTest.java</h1><pre class="source lang-java linenums">/**
+ * 
+ */
+package de.unikoblenz.emoflon.tgg.mutationtest.tests;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import de.unikoblenz.emoflon.tgg.mutationtest.TGGRuleUtil;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.xtext.resource.XtextResourceSet;
+import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
+import org.gravity.eclipse.io.ExtensionFileVisitor;
+import org.gravity.eclipse.io.GitCloneException;
+import org.gravity.eclipse.io.GitTools;
+import org.gravity.eclipse.util.EclipseProjectUtil;
+import org.junit.Before;
+import org.junit.Test;
+import org.moflon.tgg.mosl.TGGStandaloneSetup;
+import org.moflon.tgg.mosl.tgg.Rule;
+import org.moflon.tgg.mosl.tgg.Schema;
+import org.moflon.tgg.mosl.tgg.TggFactory;
+import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
+
+/**
+ * Tests for the interaction with the TGG specifications
+ * 
+ * @author speldszus
+ *
+ */
+<span class="fc" id="L49">public class TGGRuleUtilTest {</span>
+
+	/**
+	 * The logger of this class
+	 */
+<span class="fc" id="L54">	private static final Logger LOGGER = Logger.getLogger(TGGRuleUtilTest.class);</span>
+
+	/**
+	 * A test for loading all tgg rules from the eMoflon handbook example
+	 * &quot;socialNetworkSynchronisation&quot;
+	 * 
+	 * @throws IOException
+	 * @throws GitCloneException
+	 * @throws CoreException
+	 */
+	@Test
+	public void loadTGGRuleTest() throws IOException, GitCloneException, CoreException {
+<span class="fc" id="L66">		IProject project = checkoutAndGetTGGProject(&quot;https://github.com/eMoflon/emoflon-ibex-examples.git&quot;,</span>
+<span class="fc" id="L67">				&quot;socialNetworkSynchronisation/version1/&quot;);</span>
+<span class="fc" id="L68">		Path projectPath = project.getLocation().toFile().toPath();</span>
+<span class="fc" id="L69">		TGGRuleUtil util = new TGGRuleUtil(project);</span>
+<span class="fc" id="L70">		ExtensionFileVisitor visitor = new ExtensionFileVisitor(&quot;tgg&quot;);</span>
+<span class="fc" id="L71">		project.accept(visitor);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		for (Path ruleFile : visitor.getFiles()) {</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">			if (ruleFile.isAbsolute()) {</span>
+<span class="fc" id="L74">				ruleFile = projectPath.relativize(ruleFile);</span>
+			}
+<span class="fc bfc" id="L76" title="All 2 branches covered.">			if (IbexTGGNature.SCHEMA_FILE.equals(ruleFile.toString())) {</span>
+<span class="fc" id="L77">				continue;</span>
+			}
+<span class="fc" id="L79">			TripleGraphGrammarFile rule = util.loadRule(project.getFile(ruleFile.toString()));</span>
+<span class="fc" id="L80">			assertNotNull(rule);</span>
+		}
+<span class="fc" id="L82">	}</span>
+
+	/**
+	 * Tests the serialization of a dummy rule
+	 * 
+	 * @throws IOException If the rule cannot be serialized
+	 */
+	@Test
+	public void serializeTGGRuleTest() throws IOException {
+<span class="fc" id="L91">		File tmpFile = Files.createTempFile(&quot;xtext&quot;, &quot;.tgg&quot;).toFile();</span>
+<span class="fc" id="L92">		String schemaName = &quot;testSchema&quot;;</span>
+<span class="fc" id="L93">		String ruleName = &quot;testRule&quot;;</span>
+<span class="fc" id="L94">		TripleGraphGrammarFile ruleFile = createEmptyRuleAndSchema(schemaName, ruleName);</span>
+
+<span class="fc" id="L96">		ruleFile.eResource().save(new FileOutputStream(tmpFile), Collections.emptyMap());</span>
+
+<span class="fc" id="L98">		assertTrue(tmpFile.exists());</span>
+
+<span class="fc" id="L100">		List&lt;String&gt; lines = Files.readAllLines(tmpFile.toPath());</span>
+<span class="fc" id="L101">		assertNotNull(lines);</span>
+<span class="fc" id="L102">		assertFalse(lines.isEmpty());</span>
+<span class="fc" id="L103">		assertEquals(&quot;#rule &quot; + ruleName + &quot; #with &quot; + schemaName,</span>
+<span class="fc" id="L104">				lines.parallelStream().collect(Collectors.joining()).trim());</span>
+<span class="fc" id="L105">	}</span>
+
+	/**
+	 * Initializes xtext
+	 */
+	@Before
+	public void initXtext() {
+<span class="fc" id="L112">		new TGGStandaloneSetup().createInjectorAndDoEMFRegistration();</span>
+<span class="fc" id="L113">	}</span>
+
+	/**
+	 * Creates an new empty rule and with the given names
+	 * 
+	 * @param schemaName The name of the schema
+	 * @param ruleName   The name of the rule
+	 * 
+	 * @return the created rule
+	 */
+	private TripleGraphGrammarFile createEmptyRuleAndSchema(String schemaName, String ruleName) {
+<span class="fc" id="L124">		XtextResourceSet resourceSet = new XtextResourceSet();</span>
+<span class="fc" id="L125">		Resource ruleResource = resourceSet.createResource(URI.createFileURI(ruleName + &quot;.tgg&quot;));</span>
+<span class="fc" id="L126">		Resource schemaResource = resourceSet.createResource(URI.createFileURI(&quot;Schema.tgg&quot;));</span>
+<span class="fc" id="L127">		TggFactory factory = TggFactory.eINSTANCE;</span>
+
+<span class="fc" id="L129">		TripleGraphGrammarFile ruleFile = factory.createTripleGraphGrammarFile();</span>
+
+<span class="fc" id="L131">		Schema schema = factory.createSchema();</span>
+<span class="fc" id="L132">		schema.setName(schemaName);</span>
+<span class="fc" id="L133">		schemaResource.getContents().add(schema);</span>
+
+<span class="fc" id="L135">		Rule rule = factory.createRule();</span>
+<span class="fc" id="L136">		rule.setName(ruleName);</span>
+<span class="fc" id="L137">		rule.setSchema(schema);</span>
+<span class="fc" id="L138">		ruleFile.getRules().add(rule);</span>
+
+<span class="fc" id="L140">		ruleResource.getContents().add(ruleFile);</span>
+<span class="fc" id="L141">		return ruleFile;</span>
+	}
+
+	/**
+	 * Clones the git repository, imports all projects into the workspace and
+	 * returns the tgg project
+	 * 
+	 * @param url    The url of the git repository
+	 * @param folder A folder within the repository containing the projects to
+	 *               import
+	 * @return The TGG project
+	 * @throws IOException
+	 * @throws CoreException
+	 * @throws GitCloneException
+	 */
+	private IProject checkoutAndGetTGGProject(String url, String folder)
+			throws IOException, CoreException, GitCloneException {
+<span class="fc" id="L158">		File tmp = Files.createTempDirectory(&quot;eMoflonExamples&quot;).toFile();</span>
+<span class="fc" id="L159">		try (GitTools git = new GitTools(url, tmp)) {</span>
+<span class="fc" id="L160">			List&lt;IProject&gt; projects = EclipseProjectUtil.importProjects(new File(tmp.listFiles()[0], folder),</span>
+<span class="fc" id="L161">					new NullProgressMonitor());</span>
+<span class="fc" id="L162">			return getAnyTGGProject(projects);</span>
+		}
+	}
+
+	/**
+	 * Search if there is any TGG project contained in the list of projects and
+	 * return it
+	 * 
+	 * @param projects A list of eclipse project
+	 * @return A eMoflon TGG project if present in the list
+	 * @throws IllegalStateException if no TGG project is contained in the list
+	 */
+	private IProject getAnyTGGProject(List&lt;IProject&gt; projects) throws IllegalStateException {
+<span class="fc" id="L175">		Optional&lt;IProject&gt; result = projects.parallelStream().filter(p -&gt; {</span>
+			try {
+<span class="fc bfc" id="L177" title="All 2 branches covered.">				return p.getNature(IbexTGGNature.IBEX_TGG_NATURE_ID) != null;</span>
+<span class="nc" id="L178">			} catch (CoreException e) {</span>
+<span class="nc" id="L179">				LOGGER.error(e.getMessage(), e);</span>
+<span class="nc" id="L180">				return false;</span>
+			}
+<span class="fc" id="L182">		}).findAny();</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">		if (!result.isPresent()) {</span>
+<span class="nc" id="L184">			throw new IllegalStateException(&quot;Couldn't load the TGG project!&quot;);</span>
+		}
+<span class="fc" id="L186">		return result.get();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

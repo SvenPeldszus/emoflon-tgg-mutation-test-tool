@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest
+Bundle-SymbolicName: de.unikoblenz.emoflon.tgg.mutationtest
+Require-Bundle: org.eclipse.core.runtime,org.eclipse.core.resources,or
+ g.emoflon.ibex.tgg.ide,org.eclipse.xtext,org.emoflon.ibex.tgg.editor
+Bundle-ManifestVersion: 2
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: RGSE - University of Koblenz-Landau
+Export-Package: de.unikoblenz.emoflon.tgg.mutationtest
+Bundle-Name: eMoflon TGG Mutation Test
+Bundle-Version: 1.0.0.201909022014
+Bundle-ClassPath: .
+Bundle-Activator: de.unikoblenz.emoflon.tgg.mutationtest.Activator
+

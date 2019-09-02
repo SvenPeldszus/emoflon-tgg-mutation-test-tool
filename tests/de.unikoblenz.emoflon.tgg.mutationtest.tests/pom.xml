@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>de.unikoblenz.emoflon.tgg.mutationtest</groupId>
+    <artifactId>tgg-mutation-test</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../../</relativePath>
+  </parent>
+  <groupId>de.unikoblenz.emoflon.tgg.mutationtest</groupId>
+  <artifactId>de.unikoblenz.emoflon.tgg.mutationtest.tests</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>eclipse-test-plugin</packaging>
+   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-surefire-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <configuration>
+          <!--<skipTests>true</skipTests>-->
+          <argLine>${surefireArgLine}</argLine>
+          <deleteOsgiDataDirectory>false</deleteOsgiDataDirectory>
+   	      <useUIHarness>false</useUIHarness>
+          <useUIThread>true</useUIThread>
+          <product>org.eclipse.platform.ide</product>
+          <application>org.eclipse.pde.junit.runtime.coretestapplication</application>
+          <testRuntime>default</testRuntime>
+        </configuration>
+      </plugin> 
+    </plugins>
+  </build>
+</project>
