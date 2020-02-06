@@ -2,6 +2,7 @@ package de.unikoblenz.emoflon.tgg.mutationtest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -89,28 +90,43 @@ public class TGGRuleUtil {
 				return false;
 			}
 			
-			Rule rule = rules.get(0);
-			//int randomMutantIndex = getRandomNumber(0, 4);
-					
-			int randomMutantIndex = 3;
-		    // add emoflon validator 
 			
-			switch(randomMutantIndex) {
-			  case 0:
-				  	 return addMutant_DeleteSourcePattern(rule); 
-			  case 1:
-				  	 return addMutant_DeleteTargetPattern(rule);
-			  case 2:
-				     return addMutant_DeleteCorrespondencePattern(rule);
-			  case 3:
-					 return addAMutant_AddSourcePattern(rule);
-			  case 4:
-					 return addAMutant_AddTargetPattern(rule);
-			  case 5:
-					 return addAMutant_AddCorrespondence(rule);
-			  default:
-			    return false;
+			boolean isSuccess = false;
+			Rule rule = rules.get(0);
+
+			
+			Integer[] indexes = new Integer[] {0, 1, 2, 3, 4, 5};
+			List<Integer> randomIndexes = Arrays.asList(indexes);
+			Collections.shuffle(randomIndexes);
+			
+			for (Integer index : randomIndexes) {	
+				index = 3;
+				switch(index) {
+				  case 0:
+					  isSuccess =  addMutant_DeleteSourcePattern(rule); 
+					  break;
+				  case 1:
+					  isSuccess =  addMutant_DeleteTargetPattern(rule);
+					  break;
+				  case 2:
+					  isSuccess =  addMutant_DeleteCorrespondencePattern(rule);
+					  break;
+				  case 3:
+					  isSuccess =  addAMutant_AddSourcePattern(rule);
+					  break;
+				  case 4:
+					  isSuccess =  addAMutant_AddTargetPattern(rule);
+					  break;
+				  case 5:
+					  isSuccess =  addAMutant_AddCorrespondence(rule);
+					  break;
+				  default:
+					  isSuccess =  false;
+				}
+				if (isSuccess)
+					return true;
 			}
+			return isSuccess;
 		}
 		catch(Exception e) {
 			return false;
@@ -190,18 +206,24 @@ public class TGGRuleUtil {
 			return false;
 		}
 		
-		boolean isSuccess = addNode(rule, true);
-		if (!isSuccess)
+		ObjectVariablePattern node = createNode(rule, true);
+		if (node == null)
 			return false;
 
 		try {
 			if (sourceObjects.size() > 1) {
-				ObjectVariablePattern sourceObject = sourceObjects.get(sourceObjects.size() - 2);
-				ObjectVariablePattern targetObject = sourceObjects.get(sourceObjects.size() - 1);
+				ObjectVariablePattern sourceObject = sourceObjects.get(sourceObjects.size() - 1);
+				ObjectVariablePattern targetObject = node;
 				Operator op = TggFactory.eINSTANCE.createOperator();
 				op.setValue(DEFAULT_OPERATOR);
 				// add a link
-				addLinkEdge(rule, sourceObject, targetObject, op);
+				LinkVariablePattern link = createLinkEdge(rule, sourceObject, targetObject, op);
+				
+				if (link == null)
+					return false;
+				// Add the new node to the TGG rule
+				sourceObjects.add(node);
+				sourceObject.getLinkVariablePatterns().add(link);
 			}
 			
 			return true;
@@ -224,20 +246,31 @@ public class TGGRuleUtil {
 			return false;
 		}
 		
-		boolean isSuccess = addNode(rule, false);
-		if (!isSuccess)
+		ObjectVariablePattern node = createNode(rule, false);
+		if (node == null)
 			return false;
-		
-		if (targetObjects.size() > 1) {
-			ObjectVariablePattern sourceObject = targetObjects.get(targetObjects.size() - 2);
-			ObjectVariablePattern targetObject = targetObjects.get(targetObjects.size() - 1);
-			Operator op = TggFactory.eINSTANCE.createOperator();
-			op.setValue(DEFAULT_OPERATOR);
-			// add a link
-			addLinkEdge(rule, sourceObject, targetObject, op);
+
+		try {
+			if (targetObjects.size() > 1) {
+				ObjectVariablePattern sourceObject = targetObjects.get(targetObjects.size() - 1);
+				ObjectVariablePattern targetObject = node;
+				Operator op = TggFactory.eINSTANCE.createOperator();
+				op.setValue(DEFAULT_OPERATOR);
+				// add a link
+				LinkVariablePattern link = createLinkEdge(rule, sourceObject, targetObject, op);
+				
+				if (link == null)
+					return false;
+				// Add the new node to the TGG rule
+				targetObjects.add(node);
+				sourceObject.getLinkVariablePatterns().add(link);
+			}
+			
+			return true;
 		}
-		
-		return true;
+		catch(Exception e) {
+			return false;
+		}
 	}
 	
 	/** Introduce the mutant into the TGG file, which adds one correspondence pattern  
@@ -253,9 +286,12 @@ public class TGGRuleUtil {
 			return false;
 		}
 		
-		boolean isSuccess = addCorrespondenceNode(rule);
-		if (!isSuccess)
+		CorrVariablePattern correspondence = createCorrespondenceNode(rule);
+		if (correspondence == null)
 			return false;
+		
+		// Add the new correspondence to the TGG rule
+		corrObjects.add(correspondence);
 		
 		return true;
 	}
@@ -323,7 +359,7 @@ public class TGGRuleUtil {
 		}		
 	}
 	
-	public boolean addNode(Rule rule, boolean isSourceNode) {
+	public ObjectVariablePattern createNode(Rule rule, boolean isSourceNode) {
 		Schema schema;
 		List<ObjectVariablePattern> sourceObjects;
 		List<ObjectVariablePattern> targetObjects;
@@ -334,7 +370,7 @@ public class TGGRuleUtil {
 			targetObjects = rule.getTargetPatterns();
 			
 			if (schema == null || sourceObjects == null || targetObjects == null)
-				return false;
+				return null;
 	
 			// Get all possible node types
 			Map<String, List<EClassifier>> classifiers;
@@ -351,24 +387,23 @@ public class TGGRuleUtil {
 			String nodeName = "mutant" + System.currentTimeMillis();
 	
 			// Create a new node
-			ObjectVariablePattern node = createNode(nodeName, type);
-			if (node == null)
-				return false;
-	
-			// Add the new node to the TGG rule
-			if (isSourceNode)
-				sourceObjects.add(node);
-			else
-				targetObjects.add(node);
+			ObjectVariablePattern node = TggFactory.eINSTANCE.createObjectVariablePattern();
+			node.setName(nodeName);
+			node.setType(type);
+
+			// Set the default operator DEFAULT_OPERATOR for the new correspondence
+			Operator op = TggFactory.eINSTANCE.createOperator();
+			op.setValue(DEFAULT_OPERATOR);
+			node.setOp(op);											
 			
-			return true;
+			return node;
 		}
 		catch(Exception e) {
-			return false;
+			return null;
 		}
 	}
 	
-	public boolean addCorrespondenceNode(Rule rule) {
+	public CorrVariablePattern createCorrespondenceNode(Rule rule) {
 		Schema schema;
 		List<CorrVariablePattern> corrList;
 		List<ObjectVariablePattern> sourceObjects;
@@ -382,7 +417,7 @@ public class TGGRuleUtil {
 			
 			if (schema == null || corrList == null || sourceObjects == null || targetObjects == null
 					|| sourceObjects.size() == 0 || targetObjects.size() == 0)
-				return false;
+				return null;
 			
 			// Get type
 			List<CorrType> corrTypes = schema.getCorrespondenceTypes();
@@ -403,41 +438,14 @@ public class TGGRuleUtil {
 			Operator op = TggFactory.eINSTANCE.createOperator();
 			op.setValue(DEFAULT_OPERATOR);
 			correspondence.setOp(op);
-
-			// Add the new correspondence to the TGG rule
-			corrList.add(correspondence);
 			
-			return true;
-		}
-		catch(Exception e) {
-			return false;
-		}
-	}
-	
-	/** Create ObjectVariablePattern object
-	 * 
-	 * @param String The ObjectVariablePattern name
-	 * @param EClass The ObjectVariablePattern type
-	 * @return ObjectVariablePattern The created node
-	 */
-	public ObjectVariablePattern createNode(String nodeName, EClass type)  {
-		try {
-			// Create a new node
-			ObjectVariablePattern node = TggFactory.eINSTANCE.createObjectVariablePattern();
-			node.setName(nodeName);
-			node.setType(type);
-
-			// Set the default operator DEFAULT_OPERATOR for the new correspondence
-			Operator op = TggFactory.eINSTANCE.createOperator();
-			op.setValue(DEFAULT_OPERATOR);
-			node.setOp(op);
-			
-			return node;
+			return correspondence;
 		}
 		catch(Exception e) {
 			return null;
 		}
 	}
+	
 	
 	private String getObjectVariableName(EObject objVar) {
 		String objVarName = "";
@@ -481,7 +489,7 @@ public class TGGRuleUtil {
 	}
 	
 	
-	public boolean addLinkEdge(Rule rule,
+	public LinkVariablePattern createLinkEdge(Rule rule,
 			ObjectVariablePattern sourceObject, 
 			ObjectVariablePattern targetObject, 
 			Operator op) {
@@ -496,16 +504,15 @@ public class TGGRuleUtil {
 					LinkVariablePattern link = TggFactory.eINSTANCE.createLinkVariablePattern();
 					link.setTarget(targetObject);
 					link.setType(reference);
-					link.setOp(op);
-					sourceObject.getLinkVariablePatterns().add(link);
+					link.setOp(op);					
 					
-					return true;
+					return link;
 				}
 			};
-			return false;							
+			return null;							
 		}
 		catch(Exception e) {
-			return false;
+			return null;
 		}
 	}
 	
