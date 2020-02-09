@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.*;
 public class ConfigSelectionPage extends WizardPage{
 	
     private Composite container;
+    
+    private IFile launchConfigFile;
 
     public ConfigSelectionPage() {
         super("Config Selection");
@@ -53,6 +55,7 @@ public class ConfigSelectionPage extends WizardPage{
         projectListViewer.addSelectionChangedListener(
         		selection -> {
         			if(selection.getSelection() != null) {
+        				launchConfigFile = (IFile) selection.getSelection();
         				setPageComplete(true);
         			}
         		});
@@ -79,5 +82,9 @@ public class ConfigSelectionPage extends WizardPage{
     		return null;
     	}
     }
+
+	public IFile getLaunchConfigFile() {
+		return launchConfigFile;
+	}
 
 }

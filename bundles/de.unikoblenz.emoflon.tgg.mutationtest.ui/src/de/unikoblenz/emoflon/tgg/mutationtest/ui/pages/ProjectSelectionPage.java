@@ -3,6 +3,7 @@ package de.unikoblenz.emoflon.tgg.mutationtest.ui.pages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -13,6 +14,8 @@ import org.eclipse.swt.widgets.*;
 public class ProjectSelectionPage extends WizardPage{
 	
     private Composite container;
+    
+    private IProject selectedProject;
 
     public ProjectSelectionPage() {
         super("Project Selection");
@@ -34,6 +37,7 @@ public class ProjectSelectionPage extends WizardPage{
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] projects = workspaceRoot.getProjects();
         
+        //TODO filter projects for tgg projects
         projectListViewer.add(projects);
         
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -41,6 +45,7 @@ public class ProjectSelectionPage extends WizardPage{
         projectListViewer.addSelectionChangedListener(
         		selection -> {
         			if(selection.getSelection() != null) {
+        				selectedProject = (IProject) selection.getSelection();
         				setPageComplete(true);
         			}
         		});
@@ -51,4 +56,8 @@ public class ProjectSelectionPage extends WizardPage{
 
     }
 
+	public IProject getSelectedProject() {
+		return selectedProject;
+	}
+    
 }

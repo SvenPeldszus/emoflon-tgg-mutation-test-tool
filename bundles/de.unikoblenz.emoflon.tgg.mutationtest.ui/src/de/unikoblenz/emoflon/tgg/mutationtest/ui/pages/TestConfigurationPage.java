@@ -48,4 +48,14 @@ public class TestConfigurationPage extends WizardPage{
 
     }
 
+	public Text getIterations() {
+		return iterations;
+	}
+
+	public Text getTimeout() {
+		return timeout;
+	}
+    
+    
+
 }
