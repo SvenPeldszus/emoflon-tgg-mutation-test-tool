@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            class="de.unikoblenz.emoflon.tgg.mutationtest.ui.SelectionWizard"
+            id="de.unikoblenz.emoflon.tgg.mutationtest.ui.wizard1"
+            name="Mutation Test Configuration">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="de.unikoblenz.emoflon.tgg.mutationtest.ui.toolbar2">
+            <command
+                  commandId="de.unikoblenz.emoflon.tgg.mutationtest.ui.startwizardcommand"
+                  label="start wizard"
+                  style="push"
+                  tooltip="test">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="de.unikoblenz.emoflon.tgg.mutationtest.ui.WizardHandler"
+            commandId="de.unikoblenz.emoflon.tgg.mutationtest.ui.startwizardcommand">
+      </handler>
+   </extension>
+</plugin>
