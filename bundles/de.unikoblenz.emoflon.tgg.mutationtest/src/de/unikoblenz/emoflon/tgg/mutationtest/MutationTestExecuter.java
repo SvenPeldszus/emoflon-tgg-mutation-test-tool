@@ -9,7 +9,6 @@ public class MutationTestExecuter {
 		
 		//TODO calculate possible mutation count so we don't keep on iterating at some point while no more new mutations are possible
 		
-		
 		System.out.println(testProject);
 		System.out.println(launchConfigFile);
 		System.out.println(iterations);
