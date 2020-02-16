@@ -2,6 +2,8 @@ package de.unikoblenz.emoflon.tgg.mutationtest.ui.pages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.core.resources.IContainer;
@@ -18,6 +20,8 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -27,6 +31,10 @@ public class ConfigSelectionPage extends WizardPage{
     private Composite container;
     
     private ILaunchConfiguration launchConfiguration;
+    
+	private Map<String, ILaunchConfiguration> launchConfigMap = new HashMap<>();
+	
+	private List configListViewer;
 
     public ConfigSelectionPage() {
         super("Config Selection");
@@ -44,7 +52,7 @@ public class ConfigSelectionPage extends WizardPage{
         Label label1 = new Label(container, SWT.NONE);
         label1.setText("Select a launch config..");
 
-        ListViewer projectListViewer = new ListViewer(container, SWT.BORDER | SWT.SINGLE);
+        configListViewer = new List(container, SWT.BORDER | SWT.SINGLE);
         
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         
@@ -57,24 +65,35 @@ public class ConfigSelectionPage extends WizardPage{
         ILaunchConfigurationType type =     manager.getLaunchConfigurationType("org.eclipse.cdt.launch.applicationLaunchType");
         ILaunchConfiguration[] launchConfigurations;
         try {
-        	launchConfigurations = manager.getLaunchConfigurations(type);
+        	launchConfigurations = manager.getLaunchConfigurations();
         	
         	Arrays.asList(launchConfigurations).stream()
-        	.forEach(projectListViewer::add);
+        	.forEach(iLaunchConfiguration -> launchConfigMap.put(iLaunchConfiguration.toString(), iLaunchConfiguration));
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         
+        launchConfigMap.keySet().forEach(configListViewer::add);
+        
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 
-        projectListViewer.addSelectionChangedListener(
-        		selection -> {
-        			if(selection.getSelection() != null) {
-        				launchConfiguration = (ILaunchConfiguration) selection.getSelection();
-        				setPageComplete(true);
-        			}
-        		});
+        configListViewer.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				launchConfiguration = launchConfigMap.get(configListViewer.getSelection()[0]);
+				setPageComplete(true);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				launchConfiguration = launchConfigMap.get(configListViewer.getSelection()[0]);
+				setPageComplete(true);
+			}
+		});
         
         // required to avoid an error in the system
         setControl(container);
