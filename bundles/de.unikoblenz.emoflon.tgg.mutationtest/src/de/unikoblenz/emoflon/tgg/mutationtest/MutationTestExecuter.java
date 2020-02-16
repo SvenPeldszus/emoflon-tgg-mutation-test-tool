@@ -27,6 +27,12 @@ public class MutationTestExecuter {
 	
 	public void executeTests(IProject testProject, ILaunchConfiguration launchConfigFile, Integer iterations, Integer timeout) {
 		
+		System.out.println(testProject);
+		System.out.println(launchConfigFile);
+		System.out.println(iterations);
+		System.out.println(timeout);
+		
+		
 		//TODO calculate possible mutation count so we don't keep on iterating at some point while no more new mutations are possible
 		TGGRuleUtil tggRuleUtil;
 		try {
@@ -75,12 +81,6 @@ public class MutationTestExecuter {
 			
 		}
 		
-		
-		
-		System.out.println(testProject);
-		System.out.println(launchConfigFile);
-		System.out.println(iterations);
-		System.out.println(timeout);
 	}
 
 	private void createRuleFileBackup(Path projectPath, Path tggFilePath) throws IOException {
