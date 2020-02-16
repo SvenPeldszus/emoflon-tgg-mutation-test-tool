@@ -11,6 +11,10 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationType;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -22,7 +26,7 @@ public class ConfigSelectionPage extends WizardPage{
 	
     private Composite container;
     
-    private IFile launchConfigFile;
+    private ILaunchConfiguration launchConfiguration;
 
     public ConfigSelectionPage() {
         super("Config Selection");
@@ -44,18 +48,30 @@ public class ConfigSelectionPage extends WizardPage{
         
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         
-        processContainer(workspaceRoot).stream()
-        	.filter(Objects::nonNull)
-        	.filter(file -> file.getFileExtension().equalsIgnoreCase("launch"))
-        	.forEach(projectListViewer::add);
+//        processContainer(workspaceRoot).stream()
+//        	.filter(Objects::nonNull)
+//        	.filter(file -> file.getFileExtension().equalsIgnoreCase("launch"))
+//        	.forEach(projectListViewer::add);
         
+        ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+        ILaunchConfigurationType type =     manager.getLaunchConfigurationType("org.eclipse.cdt.launch.applicationLaunchType");
+        ILaunchConfiguration[] launchConfigurations;
+        try {
+        	launchConfigurations = manager.getLaunchConfigurations(type);
+        	
+        	Arrays.asList(launchConfigurations).stream()
+        	.forEach(projectListViewer::add);
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 
         projectListViewer.addSelectionChangedListener(
         		selection -> {
         			if(selection.getSelection() != null) {
-        				launchConfigFile = (IFile) selection.getSelection();
+        				launchConfiguration = (ILaunchConfiguration) selection.getSelection();
         				setPageComplete(true);
         			}
         		});
@@ -83,8 +99,8 @@ public class ConfigSelectionPage extends WizardPage{
     	}
     }
 
-	public IFile getLaunchConfigFile() {
-		return launchConfigFile;
+	public ILaunchConfiguration getLaunchConfiguration() {
+		return launchConfiguration;
 	}
 
 }

@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: de.unikoblenz.emoflon.tgg.mutationtest.ui.Activator
 Bundle-Vendor: RGSE - University of Koblenz-Landau
 Require-Bundle: org.eclipse.ui,
+ org.eclipse.debug.core,
  org.eclipse.core.runtime,
  org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

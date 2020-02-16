@@ -2,6 +2,7 @@ package de.unikoblenz.emoflon.tgg.mutationtest.ui;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
@@ -58,7 +59,7 @@ public class MutationTestSetupWizard extends Wizard {
 		// collect data
 		IProject testProject = projectSelectionPage.getSelectedProject();
 		
-		IFile launchConfigFile = configSelectionPage.getLaunchConfigFile();
+		ILaunchConfiguration launchConfigFile = configSelectionPage.getLaunchConfiguration();
 		
 		Integer iterations = Integer.valueOf(testConfigurationPage.getIterations().getText());
 		
