@@ -12,13 +12,20 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationType;
+import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.ui.DebugUITools;
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.gravity.eclipse.io.ExtensionFileVisitor;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 
+//TODO ask: properly import instead of 'require bundle' in MANIFEST.MF
+
 public class MutationTestExecuter {
 	
-	public void executeTests(IProject testProject, IFile launchConfigFile, Integer iterations, Integer timeout) {
+	public void executeTests(IProject testProject, ILaunchConfiguration launchConfigFile, Integer iterations, Integer timeout) {
 		
 		//TODO calculate possible mutation count so we don't keep on iterating at some point while no more new mutations are possible
 		TGGRuleUtil tggRuleUtil;
@@ -27,17 +34,9 @@ public class MutationTestExecuter {
 			
 			
 			//TODO select rule file
+			Path tggFilePath = retrieveRandomTggFilePath(testProject);
 			
-			ExtensionFileVisitor tggFileVisitor = new ExtensionFileVisitor("tgg");
-			testProject.accept(tggFileVisitor);
 			Path projectPath = testProject.getLocation().toFile().toPath();
-			
-			int randomIndex = new Random().nextInt(tggFileVisitor.getFiles().size());
-			
-			
-			
-			Path tggFilePath = retrieveRandomTggFilePath(tggFileVisitor, projectPath, randomIndex);
-			
 			createRuleFileBackup(projectPath, tggFilePath);
 			
 		
@@ -45,15 +44,20 @@ public class MutationTestExecuter {
 			
 			boolean isSuccess = tggRuleUtil.getMutantRule(tggFile);
 			
-			//TODO store mutant rule file? idk how
+			//TODO save new tgg data to the original tgg file
+			tggFile.eResource().save(Collections.emptyMap());
 			
+
 			if(isSuccess) {
 				//build the project with the new TGG file
 				testProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
 				
-				//TODO execute launch config
-				
+				//TODO execute launch configuration				
+				DebugUITools.launch(launchConfigFile, ILaunchManager.DEBUG_MODE);
+
 				//TODO retrieve results
+				
+				//TODO undo the file replacement
 				
 				
 			} else {
@@ -86,14 +90,21 @@ public class MutationTestExecuter {
 		Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 
-	private Path retrieveRandomTggFilePath(ExtensionFileVisitor tggFileVisitor, Path projectPath, int randomIndex) {
+	private Path retrieveRandomTggFilePath(IProject testProject) throws CoreException {
+		
+		ExtensionFileVisitor tggFileVisitor = new ExtensionFileVisitor("tgg");
+		testProject.accept(tggFileVisitor);
+		Path projectPath = testProject.getLocation().toFile().toPath();
+		
+		int randomIndex = new Random().nextInt(tggFileVisitor.getFiles().size());
 		Path tggFilePath = tggFileVisitor.getFiles().get(randomIndex);
+		
 		if (tggFilePath.isAbsolute()) {
 			tggFilePath = projectPath.relativize(tggFilePath);
 		}
 		
 		if (IbexTGGNature.SCHEMA_FILE.equals(tggFilePath.toString())) {
-			return retrieveRandomTggFilePath(tggFileVisitor, projectPath, randomIndex);
+			return retrieveRandomTggFilePath(testProject);
 		} else {
 			return tggFilePath;
 		}
