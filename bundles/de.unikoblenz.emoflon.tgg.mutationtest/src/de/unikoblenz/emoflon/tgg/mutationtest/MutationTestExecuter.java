@@ -27,49 +27,51 @@ public class MutationTestExecuter {
 	
 	public void executeTests(IProject testProject, ILaunchConfiguration launchConfigFile, Integer iterations, Integer timeout) {
 		
-		System.out.println(testProject);
-		System.out.println(launchConfigFile);
-		System.out.println(iterations);
-		System.out.println(timeout);
-		
+		System.out.println("-----------------------");
+		System.out.println("Wizard config:");
+		System.out.println("project: " + testProject);
+		System.out.println("launch config: " + launchConfigFile);
+		System.out.println("iterations: " + iterations);
+		System.out.println("timeout: " +timeout);
+		System.out.println("-----------------------");
 		
 		//TODO calculate possible mutation count so we don't keep on iterating at some point while no more new mutations are possible
 		TGGRuleUtil tggRuleUtil;
 		try {
 			tggRuleUtil = new TGGRuleUtil(testProject);
 			
-			
-			//TODO select rule file
 			Path tggFilePath = retrieveRandomTggFilePath(testProject);
+			System.out.println("Mutating file: " + tggFilePath.getFileName());
 			
 			Path projectPath = testProject.getLocation().toFile().toPath();
 			createRuleFileBackup(projectPath, tggFilePath);
 			
-		
+			
 			TripleGraphGrammarFile tggFile = tggRuleUtil.loadRule(testProject.getFile(tggFilePath.toString()));
 			
 			boolean isSuccess = tggRuleUtil.getMutantRule(tggFile);
 			
-			//TODO save new tgg data to the original tgg file
-			tggFile.eResource().save(Collections.emptyMap());
 			
-
 			if(isSuccess) {
+				//TODO save new tgg data to the original tgg file
+				System.out.println("Saving file");
+				tggFile.eResource().save(Collections.emptyMap());
+				
 				//build the project with the new TGG file
 				testProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
 				
 				//TODO execute launch configuration				
-				DebugUITools.launch(launchConfigFile, ILaunchManager.DEBUG_MODE);
+				DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 
 				//TODO retrieve results
 				
-				//TODO undo the file replacement
-				
-				
+
 			} else {
 				//TODO proper handling
 				System.out.println("Unable to mutate any file");
 			}
+			
+			restoreOriginalRuleFile(projectPath, tggFilePath);
 			
 
 		} catch (IOException e) {
@@ -88,6 +90,13 @@ public class MutationTestExecuter {
 		Path sourcePath = projectPath.resolve(tggFilePath);
 		Path targetPath = sourcePath.resolveSibling(fileName + ".backup");	
 		Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+	}
+	
+	private void restoreOriginalRuleFile(Path projectPath, Path tggFilePath) throws IOException {
+		Path fileName = tggFilePath.getFileName();	
+		Path mutatedFilePath = projectPath.resolve(tggFilePath);
+		Path backupFilePath = mutatedFilePath.resolveSibling(fileName + ".backup");	
+		Files.move(backupFilePath, mutatedFilePath, StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	private Path retrieveRandomTggFilePath(IProject testProject) throws CoreException {
