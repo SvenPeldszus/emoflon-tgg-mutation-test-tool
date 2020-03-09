@@ -13,4 +13,4 @@ addons:
       secure: "a72b83a4eff0ded471ac6ee28658097488465911" # encrypted value of your token
 script:
   # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
-  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=SvenPeldszus_emoflon-tgg-mutation-test-tool
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -fae -Dsonar.projectKey=SvenPeldszus_emoflon-tgg-mutation-test-tool
