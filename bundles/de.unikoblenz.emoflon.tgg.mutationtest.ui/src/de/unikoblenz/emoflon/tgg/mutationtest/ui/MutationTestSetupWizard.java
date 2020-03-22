@@ -33,6 +33,7 @@ import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.TestConfigurationPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.TestConfigurationSelectionPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.util.WizardFlowControl;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfig;
 
 public class MutationTestSetupWizard extends Wizard {
 
@@ -73,8 +74,6 @@ public class MutationTestSetupWizard extends Wizard {
 			configSelectionPage.setPageComplete(true);
 			testConfigurationPage.setPageComplete(true);
 			return placeholderPage;
-		} else {
-			System.out.println("---new page!!");
 		}
 
 		if (currentPage == testConfigSelectionPage) {
@@ -106,21 +105,23 @@ public class MutationTestSetupWizard extends Wizard {
 
 			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout().getText());
 
-			MutationTestConfiguration wizardConfiguration = new MutationTestConfiguration(configName, testProject,
+			MutationTestConfiguration configuration = new MutationTestConfiguration(configName, testProject,
 					launchConfigFile, iterations, timeout);
 
+			MutationTestSerializableConfig serializableConfig = new MutationTestSerializableConfig(configuration);
+			
 			if (configCreationInputPage.isSaveConfig()) {
 				Gson gson = new Gson();
 
 				String jsonFile = System.getProperty("user.home") + File.separator + "config.json";
 
-				Set<MutationTestConfiguration> configs = new HashSet<>();
+				Set<MutationTestSerializableConfig> configs = new HashSet<>();
 
 				if (new File(jsonFile).exists()) {
 					try {
 						BufferedReader br = new BufferedReader(new FileReader(jsonFile));
 
-						configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestConfiguration>>() {
+						configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
 						}.getType());
 						br.close();
 					} catch (IOException e) {
@@ -128,7 +129,7 @@ public class MutationTestSetupWizard extends Wizard {
 						e.printStackTrace();
 					}
 				}
-				configs.add(wizardConfiguration);
+				configs.add(serializableConfig);
 
 				String json = gson.toJson(configs);
 				try {
