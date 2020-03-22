@@ -12,9 +12,11 @@ Require-Bundle: org.eclipse.core.runtime,
  org.emoflon.ibex.tgg.ide,
  org.eclipse.xtext,
  org.emoflon.ibex.tgg.editor,
- org.gravity.eclipse
+ org.gravity.eclipse,
+ org.junit
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest
 Bundle-ActivationPolicy: lazy
-Export-Package: de.unikoblenz.emoflon.tgg.mutationtest
+Export-Package: de.unikoblenz.emoflon.tgg.mutationtest,
+ de.unikoblenz.emoflon.tgg.mutationtest.util
 Bundle-ClassPath: .
