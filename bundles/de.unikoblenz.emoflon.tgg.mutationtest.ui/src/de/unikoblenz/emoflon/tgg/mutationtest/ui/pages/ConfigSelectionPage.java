@@ -56,11 +56,6 @@ public class ConfigSelectionPage extends WizardPage{
         
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         
-//        processContainer(workspaceRoot).stream()
-//        	.filter(Objects::nonNull)
-//        	.filter(file -> file.getFileExtension().equalsIgnoreCase("launch"))
-//        	.forEach(projectListViewer::add);
-        
         ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType type =     manager.getLaunchConfigurationType("org.eclipse.cdt.launch.applicationLaunchType");
         ILaunchConfiguration[] launchConfigurations;

@@ -57,7 +57,6 @@ public class TestConfigurationPage extends WizardPage{
         // required to avoid an error in the system
         setControl(container);
         setPageComplete(false);
-
     }
 
 	public Text getIterations() {
