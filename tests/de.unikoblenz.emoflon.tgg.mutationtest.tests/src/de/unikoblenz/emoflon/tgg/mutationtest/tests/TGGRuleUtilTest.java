@@ -64,11 +64,9 @@ public class TGGRuleUtilTest {
 	 */
 	@Test
 	public void loadTGGRuleTest() throws InitializationError {
-		//IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
-		//		"socialNetworkSynchronisation/version3/");
-		IProject project = getTGGProject(
-				"/Users/marinarukavitsyna/Desktop/WeST/3 semester/Forschungspraktikum/projects/emoflon-ibex-examples",
-				"socialNetworkSynchronisation/version3/", 0);
+		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
+				"socialNetworkSynchronisation/version3/");
+		
 		Path projectPath = project.getLocation().toFile().toPath();
 		try {
 			TGGRuleUtil util = new TGGRuleUtil(project);
