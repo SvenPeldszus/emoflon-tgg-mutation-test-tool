@@ -100,7 +100,7 @@ public class MutationTestSetupWizard extends Wizard {
 					launchConfigFile, iterations, timeout);
 
 			MutationTestSerializableConfig serializableConfig = new MutationTestSerializableConfig(configuration);
-			
+
 			if (configCreationInputPage.isSaveConfig()) {
 				Gson gson = new Gson();
 
@@ -109,9 +109,7 @@ public class MutationTestSetupWizard extends Wizard {
 				Set<MutationTestSerializableConfig> configs = new HashSet<>();
 
 				if (new File(jsonFile).exists()) {
-					try {
-						BufferedReader br = new BufferedReader(new FileReader(jsonFile));
-
+					try (BufferedReader br = new BufferedReader(new FileReader(jsonFile))) {
 						configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
 						}.getType());
 						br.close();
@@ -123,8 +121,7 @@ public class MutationTestSetupWizard extends Wizard {
 				configs.add(serializableConfig);
 
 				String json = gson.toJson(configs);
-				try {
-					FileWriter writer = new FileWriter(jsonFile);
+				try(FileWriter writer = new FileWriter(jsonFile)) {
 					writer.write(json);
 					writer.close();
 
