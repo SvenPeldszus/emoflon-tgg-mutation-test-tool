@@ -12,5 +12,6 @@ SonarCloud
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SvenPeldszus_emoflon-tgg-mutation-test-tool&metric=alert_status)](https://sonarcloud.io/dashboard?id=SvenPeldszus_emoflon-tgg-mutation-test-tool)
 
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=SvenPeldszus_emoflon-tgg-mutation-test-tool&metric=bugs)](https://sonarcloud.io/dashboard?id=SvenPeldszus_emoflon-tgg-mutation-test-tool)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=SvenPeldszus_emoflon-tgg-mutation-test-tool&metric=code_smells)](https://sonarcloud.io/dashboard?id=SvenPeldszus_emoflon-tgg-mutation-test-tool)
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=SvenPeldszus_emoflon-tgg-mutation-test-tool&metric=coverage)](https://sonarcloud.io/dashboard?id=SvenPeldszus_emoflon-tgg-mutation-test-tool)
