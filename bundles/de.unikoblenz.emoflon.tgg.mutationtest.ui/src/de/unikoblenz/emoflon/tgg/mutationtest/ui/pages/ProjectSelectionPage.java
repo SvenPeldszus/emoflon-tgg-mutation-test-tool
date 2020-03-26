@@ -14,7 +14,7 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -60,7 +60,7 @@ public class ProjectSelectionPage extends WizardPage {
 
 		// keep projects in a map for selection
 
-		Arrays.asList(projects).stream().forEach(iproject -> projectMap.put(iproject.toString(), iproject));
+		Arrays.asList(projects).stream().filter(this::hasTggNature).forEach(iproject -> projectMap.put(iproject.toString(), iproject));
 
 		// TODO filter projects for tgg projects
 		projectMap.keySet().forEach(projectListViewer::add);
@@ -88,6 +88,14 @@ public class ProjectSelectionPage extends WizardPage {
 		setControl(container);
 		setPageComplete(false);
 
+	}
+
+	private boolean hasTggNature(IProject project) {
+		try {
+			return project.hasNature("org.emoflon.ibex.tgg.ide.nature");
+		} catch (CoreException e) {
+			return false;
+		}
 	}
 
 	public IProject getSelectedProject() {
