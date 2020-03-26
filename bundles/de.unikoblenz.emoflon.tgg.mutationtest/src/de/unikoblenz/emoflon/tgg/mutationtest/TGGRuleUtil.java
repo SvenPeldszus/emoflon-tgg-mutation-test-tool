@@ -1,11 +1,12 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,12 +79,8 @@ public class TGGRuleUtil {
 	 */
 	public TripleGraphGrammarFile loadRule(IFile file) throws IOException, CoreException {
 		Resource ruleResource = resourceSet.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
-		try (InputStream fileContent = file.getContents()) {
-			ruleResource.load(fileContent, Collections.emptyMap());
-			EcoreUtil.resolveAll(resourceSet);
-		} catch (Exception e) {
-			// TODO: handle exception
-		}		
+		ruleResource.load(file.getContents(), Collections.emptyMap());
+		EcoreUtil.resolveAll(resourceSet);
 		return (TripleGraphGrammarFile) ruleResource.getContents().get(0);
 	}
 	
@@ -104,14 +101,16 @@ public class TGGRuleUtil {
 			List<Integer> randomIndexes = Arrays.asList(indexes);
 			Collections.shuffle(randomIndexes);
 			
-			for (Integer index : randomIndexes) {	
-				index = 3;
+			//int index = 3;
+			for (Integer index : randomIndexes) {					
 				switch(index) {
 				  case 0:
-					  isSuccess =  addMutant_DeleteSourcePattern(rule); 
+					  isSuccess = false;
+					  //isSuccess =  addMutant_DeleteSourcePattern(rule); 
 					  break;
 				  case 1:
-					  isSuccess =  addMutant_DeleteTargetPattern(rule);
+					  isSuccess = false;
+					  //isSuccess =  addMutant_DeleteTargetPattern(rule);
 					  break;
 				  case 2:
 					  isSuccess =  addMutant_DeleteCorrespondencePattern(rule);
@@ -131,72 +130,14 @@ public class TGGRuleUtil {
 				if (isSuccess)
 					return true;
 			}
-			return isSuccess;
+			return false;
 		}
 		catch(Exception e) {
 			return false;
 		}
 	}
 	
-	/** Add a mutant into the TGG rule, which deletes the last source pattern
-	 * 
-	 * @param Rule The TripleGraphGrammarFile.Rule rule file
-	 * @return boolean Indicate that a source node was deleted successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
-	 */
-	public boolean addMutant_DeleteSourcePattern(Rule rule) throws CoreException {
-		EList<ObjectVariablePattern> sourceObjects = rule.getSourcePatterns();
-		
-		if (sourceObjects == null || sourceObjects.size() == 0) {
-			return false;
-		}
-		
-		boolean isSuccess = deleteLastNode(rule, true);
-		
-		return isSuccess;
-	}
-	
-	/** Add a mutant into the TGG rule, which deletes the last target pattern
-	 * 
-	 * @param Rule The TripleGraphGrammarFile.Rule rule file
-	 * @return boolean Indicate that a source node was deleted successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
-	 */
-	public boolean addMutant_DeleteTargetPattern(Rule rule) throws CoreException {
-		EList<ObjectVariablePattern> targetObjects = rule.getTargetPatterns();
-		
-		if (targetObjects == null || targetObjects.size() == 0) {
-			return false;
-		}
-		
-		boolean isSuccess = deleteLastNode(rule, false);
-		
-		return isSuccess;
-	}
-	
-	/** Add a mutant into the TGG rule, which deletes the last Correspondence pattern
-	 * 
-	 * @param Rule The TripleGraphGrammarFile.Rule rule file
-	 * @return boolean Indicate that a source node was deleted successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
-	 */
-	public boolean addMutant_DeleteCorrespondencePattern(Rule rule) throws CoreException {	
-		try {
-			EList<CorrVariablePattern> corrPatterns = rule.getCorrespondencePatterns();
-			
-			if (corrPatterns == null || corrPatterns.size() == 0) {
-				return false;
-			}
-			
-			int indexToDelete = corrPatterns.size() - 1;
-			corrPatterns.remove(indexToDelete);	
-			
-			return true;
-		}
-		catch(Exception e) {
-			return false;
-		}	
-	}
+	// ========================== Add nodes mutants ================================//
 	
 	/** Introduce the mutant into the TGG file, which adds one source pattern  
 	 * 
@@ -301,69 +242,6 @@ public class TGGRuleUtil {
 		return true;
 	}
 	
-	public boolean deleteLastNode(Rule rule, boolean isSourceNode) {
-		List<CorrVariablePattern> correspondenceList = null;
-		List<ObjectVariablePattern> sourceObjects = null;
-		List<ObjectVariablePattern> targetObjects = null;
-		List<ObjectVariablePattern> nodes = null;
-		List<AttrCond> attrConditions = null;
-		
-		try {
-			correspondenceList = rule.getCorrespondencePatterns();
-			attrConditions = rule.getAttrConditions();
-			sourceObjects  = rule.getSourcePatterns();
-			targetObjects  = rule.getTargetPatterns();
-			
-			if (correspondenceList == null || sourceObjects == null || targetObjects == null)
-				return false;
-			
-			if (isSourceNode) {
-				nodes = sourceObjects;
-			} else {
-				nodes = targetObjects;
-			}
-			
-			int indexToDelete = nodes.size() - 1;		
-			String nodeNameToDelete = nodes.get(indexToDelete).getName();
-			ObjectVariablePattern nodeToDelete = nodes.get(indexToDelete);
-			
-			// Search for and delete dependent attribute conditions
-			List<AttrCond> attrConditionSelection = attrConditions.stream()
-					.filter(c -> c.getValues().stream().anyMatch(p -> p instanceof AttributeExpression
-							&& getObjectVariableName(((AttributeExpression) p).getObjectVar()).equals(nodeNameToDelete)))
-					.collect(Collectors.toList());
-			if (attrConditionSelection.size() > 0) {
-				attrConditions.removeAll(attrConditionSelection);
-			}
-
-			// Search for and delete dependent links
-			for (ObjectVariablePattern node: nodes) {							
-				EList<LinkVariablePattern> linkVPs = node.getLinkVariablePatterns();
-				List<Integer> listLinkIndexes = getIndexesToDelete(linkVPs, nodeNameToDelete);
-				for (int index: listLinkIndexes) {
-					linkVPs.remove(index);
-				}
-			}		
-			
-			List<Integer> listCorrIndexes = getCorrIndexesToDelete(correspondenceList, isSourceNode, nodeToDelete);
-			for (int index: listCorrIndexes) {
-				correspondenceList.remove(index);
-			}
-			
-			// Delete the last node
-			if (isSourceNode) {
-				sourceObjects.remove(indexToDelete);
-			} else {
-				targetObjects.remove(indexToDelete);
-			}
-			
-			return true;
-		}
-		catch(Exception e) {
-			return false;
-		}		
-	}
-	
 	public ObjectVariablePattern createNode(Rule rule, boolean isSourceNode) {
 		Schema schema;
 		List<ObjectVariablePattern> sourceObjects;
@@ -450,50 +328,7 @@ public class TGGRuleUtil {
 			return null;
 		}
 	}
-	
-	
-	private String getObjectVariableName(EObject objVar) {
-		String objVarName = "";
-		if (objVar instanceof ObjectVariablePattern) {
-			objVarName = ((ObjectVariablePattern) objVar).getName();
-		} else if (objVar instanceof ContextObjectVariablePattern) {
-			objVarName = ((ContextObjectVariablePattern) objVar).getName();
-		}
 
-		return objVarName;
-	}
-	
-	/** Get a list of classifiers inside a package
-	 * 
-	 * @param List<EPackage> The list of packages
-	 * @return Map<String, List<EClassifier>> The list of the classifiers inside that package
-	 */
-	private Map<String, List<EClassifier>> getClassifiersInPackageList(List<EPackage> packages) {
-		// Key: Package name, Value: List of the classifiers inside that package
-		Map<String, List<EClassifier>> classifierNames = new HashMap<String, List<EClassifier>>();
-		for (EPackage p : packages) {
-			classifierNames.put(p.getName(), p.getEClassifiers());
-		}
-
-		return classifierNames;
-	}
-	
-	/** Get a list of a types inside a list of classifiers
-	 * 
-	 * @param Map<String, List<EClassifier>> The list of classifiers
-	 * @return List<EClassifier> The list of types
-	 */
-	private List<EClassifier> combineObjectClassifierLists(Map<String, List<EClassifier>> input) {
-		Set<String> keys = input.keySet();
-		List<EClassifier> outputList = new ArrayList<EClassifier>();
-		for (String key : keys) {
-			outputList.addAll(input.get(key));
-		}
-
-		return outputList;
-	}
-	
-	
 	public LinkVariablePattern createLinkEdge(Rule rule,
 			ObjectVariablePattern sourceObject, 
 			ObjectVariablePattern targetObject, 
@@ -520,8 +355,353 @@ public class TGGRuleUtil {
 			return null;
 		}
 	}
+
 	
+	// ========================== Delete nodes mutants ================================//
+	/** Add a mutant into the TGG rule, which deletes the last source pattern
+	 * 
+	 * @param Rule The TripleGraphGrammarFile.Rule rule file
+	 * @return boolean Indicate that a source node was deleted successfully
+	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 */
+	public boolean addMutant_DeleteSourcePattern(Rule rule) throws CoreException {
+		EList<ObjectVariablePattern> sourceObjects = rule.getSourcePatterns();
+		
+		if (sourceObjects == null || sourceObjects.size() == 0) {
+			return false;
+		}
+		
+		boolean isSuccess = deleteLastNode(rule, false);
+		
+		return isSuccess;			
+	}
 	
+	/** Add a mutant into the TGG rule, which deletes the last target pattern
+	 * 
+	 * @param Rule The TripleGraphGrammarFile.Rule rule file
+	 * @return boolean Indicate that a source node was deleted successfully
+	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 */
+	public boolean addMutant_DeleteTargetPattern(Rule rule) throws CoreException {
+		EList<ObjectVariablePattern> targetObjects = rule.getTargetPatterns();
+		
+		if (targetObjects == null || targetObjects.size() == 0) {
+			return false;
+		}
+		
+		boolean isSuccess = deleteLastNode(rule, false);
+		
+		return isSuccess;
+	}
+	
+	/** Add a mutant into the TGG rule, which deletes the last Correspondence pattern
+	 * 
+	 * @param Rule The TripleGraphGrammarFile.Rule rule file
+	 * @return boolean Indicate that a source node was deleted successfully
+	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 */
+	public boolean addMutant_DeleteCorrespondencePattern(Rule rule) throws CoreException {	
+		try {
+			EList<CorrVariablePattern> corrPatterns = rule.getCorrespondencePatterns();
+			
+			if (corrPatterns == null || corrPatterns.size() == 0) {
+				return false;
+			}
+			
+			int indexToDelete = corrPatterns.size() - 1;
+			corrPatterns.remove(indexToDelete);	
+			
+			return true;
+		}
+		catch(Exception e) {
+			return false;
+		}	
+	}
+	
+	public boolean deleteLastNode(Rule rule, boolean isSourceNode) {
+		List<CorrVariablePattern> correspondenceList = null;
+		List<ObjectVariablePattern> sourceObjects = null;
+		List<ObjectVariablePattern> targetObjects = null;
+		List<ObjectVariablePattern> nodes = null;
+		List<AttrCond> attrConditions = null;
+		
+		try {
+			correspondenceList = rule.getCorrespondencePatterns();
+			attrConditions = rule.getAttrConditions();
+			sourceObjects  = rule.getSourcePatterns();
+			targetObjects  = rule.getTargetPatterns();
+			
+			if (correspondenceList == null || sourceObjects == null || targetObjects == null)
+				return false;
+			
+			if (isSourceNode) {
+				nodes = sourceObjects;
+			} else {
+				nodes = targetObjects;
+			}
+			
+			// get nodes, which do not make a model invalid
+			List <ObjectVariablePattern> nodesToDelete = getNodesToDelete(rule, isSourceNode);
+			if (nodesToDelete == null)
+				return false;
+			
+			// Search for and delete dependent attribute conditions
+			// delete all related links
+								
+			int indexToDelete = nodes.size() - 1; // use nodesToDelete		
+			String nodeNameToDelete = nodes.get(indexToDelete).getName();
+			ObjectVariablePattern nodeToDelete = nodes.get(indexToDelete);
+			
+			// Search for and delete dependent attribute conditions
+			List<AttrCond> attrConditionSelection = attrConditions.stream()
+					.filter(c -> c.getValues().stream().anyMatch(p -> p instanceof AttributeExpression
+							&& getObjectVariableName(((AttributeExpression) p).getObjectVar()).equals(nodeNameToDelete)))
+					.collect(Collectors.toList());
+			if (attrConditionSelection.size() > 0) {
+				attrConditions.removeAll(attrConditionSelection);
+			}
+
+			// Search for and delete dependent links
+			for (ObjectVariablePattern node: nodes) {							
+				EList<LinkVariablePattern> linkVPs = node.getLinkVariablePatterns();
+				List<Integer> listLinkIndexes = getIndexesToDelete(linkVPs, nodeNameToDelete);
+				for (int index: listLinkIndexes) {
+					linkVPs.remove(index);
+				}
+			}		
+			
+			// Search for and delete correspondence links
+			List<Integer> listCorrIndexes = getCorrIndexesToDelete(correspondenceList, isSourceNode, nodeToDelete);
+			for (int index: listCorrIndexes) {
+				correspondenceList.remove(index);
+			}
+			
+			// Delete the last node
+			if (isSourceNode) {
+				sourceObjects.remove(indexToDelete);
+			} else {
+				targetObjects.remove(indexToDelete);
+			}
+			
+			return true;
+		}
+		catch(Exception e) {
+			return false;
+		}		
+	}
+	
+	public List <ObjectVariablePattern> getNodesToDelete(Rule rule, boolean isSourceNode) {
+		List<CorrVariablePattern> correspondenceList = null;
+		List<ObjectVariablePattern> sourceObjects = null;
+		List<ObjectVariablePattern> targetObjects = null;
+		List<ObjectVariablePattern> nodes = null;
+		List<ObjectVariablePattern> nodesToDelete = new ArrayList<ObjectVariablePattern>();
+		
+		try {
+			correspondenceList = rule.getCorrespondencePatterns();
+			sourceObjects  = rule.getSourcePatterns();
+			targetObjects  = rule.getTargetPatterns();
+			
+			// re-think this
+			if (correspondenceList == null || sourceObjects == null || targetObjects == null)
+				return null;						
+			
+			if (isSourceNode) {
+				nodes = sourceObjects;
+			} else {
+				nodes = targetObjects;
+			}
+			
+			int newModelSize = nodes.size() -1;
+			if (newModelSize < 3) {
+				return null;
+			}			
+						
+			//EList<LinkVariablePattern> linkVPs = null;
+			
+	
+			for (int i = nodes.size() - 1; i < 3; i--) {
+				// add for - for several levels - delete several levels
+				
+				// get nodes to delete - 1 level - delete only one node
+				ObjectVariablePattern nodeToDelete = nodes.get(i);
+				
+				// check if a model is connected
+				boolean isModelValid = checkIfModelValid(sourceObjects,targetObjects,  correspondenceList, nodeToDelete);
+				if (isModelValid) {
+					nodesToDelete.add(nodeToDelete);
+				}
+				
+				/*
+				for (ObjectVariablePattern node: nodes) {
+	
+					if (nodesToDelete.contains(node)) {
+						continue;
+					}
+
+					/*
+					int linkCount = 0;
+					linkVPs = node.getLinkVariablePatterns();
+					for (LinkVariablePattern link: linkVPs) {
+						for (ObjectVariablePattern node_ToDelete: nodesToDelete) {
+							if (link.getTarget() == node_ToDelete)
+							 	continue;
+						}
+						linkCount++;
+					}
+					if (linkCount < 2) { // no links to delete 
+						break; // invalid, try to delete more nodes
+					}
+					
+				}
+				*/
+			}
+			return nodesToDelete;
+		}
+		catch(Exception e) {
+			return null;
+		}		
+	}
+	
+	class Graph { 
+		// Create a class that represent a graph of the given model. 
+	    // The graph is an array of adjacency lists. 
+	    // The number of vertices in the graph is the size of the array 
+		// A graph vertice is a model node
+		// A graph edge is a model link
+		
+		int num_Vertices;
+	    LinkedList<Integer>[] adjListArray; 
+	      
+	    // Constructor 
+	    Graph(int num_Vertices) { 
+	        this.num_Vertices = num_Vertices; 	
+	        // Create a list of vertices
+	        this.adjListArray = new LinkedList[num_Vertices]; 
+	 
+	        // Create a list for each vertex so that adjacent nodes can be stored 	  
+	        for(int i = 0; i < num_Vertices ; i++){ 
+	            adjListArray[i] = new LinkedList<>(); 
+	        } 
+	         
+	    } 
+	      
+	    // Adds an edge to an undirected graph 
+	    void addEdge(int sourceVertice, int targetVertice) { 
+	        // Add an edge from source to target 
+	        adjListArray[sourceVertice].add(targetVertice); 
+	  
+	        // Add an edge from target to source  
+	        // since a graph is undirected,
+	        adjListArray[targetVertice].add(sourceVertice); 
+	    } 
+	      
+	    void DFS(int vertice, boolean[] isVisitedVertices) { 
+	    	// Mark the current node as visited
+	    	isVisitedVertices[vertice] = true; 
+	        // Make recursion for all the vertices adjacent to this vertex 
+	        for (int neighbor : adjListArray[vertice]) { 
+	            if(!isVisitedVertices[neighbor]) {
+	            	DFS(neighbor,isVisitedVertices); 
+	            }
+	        } 
+	  
+	    } 
+	    boolean isConnected() { 
+	    	// Create an array of visited vertices
+	    	boolean[] isVisitedVertices = new boolean[num_Vertices];
+	    	
+	    	// Start the DFS from vertex 0
+	    	DFS(0, isVisitedVertices);
+	    	
+	    	// Check if all the vertices are visited, if yes then graph is connected
+	    	int count = 0;
+	    	for (int i = 0; i < isVisitedVertices.length ; i++) {
+	    		if(isVisitedVertices[i]) {
+	    			count++;
+	    		}
+	    	}
+	    	
+	    	return (num_Vertices == count);
+	    } 	    	          
+	}
+	
+	private boolean checkIfModelValid(List<ObjectVariablePattern> sourceObjects,
+			List<ObjectVariablePattern> targetObjects,
+			List<CorrVariablePattern> correspondenceList,
+			ObjectVariablePattern nodeToDelete) 
+	{
+		// all nodes = source nodes + target nodes
+        // all edges = links between sources + links between targets + correspondences 
+		
+		// Map names to numbers
+		LinkedList<String> vertices = new LinkedList<>();
+		
+		// === Create a list of vertices  === //
+		 String name;
+		 for (ObjectVariablePattern node: sourceObjects) {       	
+			 if (node == nodeToDelete) {
+				 continue;
+			 }
+			 name = node.getName();
+			 if (!vertices.contains(name)) {
+				 vertices.add(name);
+			 }				 
+		 }
+		 // to-do move to another method
+		 for (ObjectVariablePattern node: targetObjects) {       	
+			 if (node == nodeToDelete) {
+				 continue;
+			 }
+			 name = node.getName();
+			 if (!vertices.contains(name)) {
+				 vertices.add(name);
+			 };				 
+		 }
+		
+		Graph graph = new Graph(vertices.size());
+		
+        // === Create a list of edges  === //
+		// Add source links
+        addEdgesToGraphMappedFromLinks(graph, sourceObjects, vertices, nodeToDelete);
+        // Add target links
+        addEdgesToGraphMappedFromLinks(graph, targetObjects, vertices, nodeToDelete);
+        // Add correspondence links
+        for (CorrVariablePattern correspondence: correspondenceList) {
+        	if (correspondence.getSource() != nodeToDelete && correspondence.getTarget() != nodeToDelete) {      		
+        		int source = vertices.indexOf(correspondence.getSource().getName());
+        		int target = vertices.indexOf(correspondence.getTarget().getName());
+        		graph.addEdge(source,target);
+        	}
+        }
+
+        return graph.isConnected();					
+	}
+
+	private void addEdgesToGraphMappedFromLinks(Graph graph, 
+			List<ObjectVariablePattern> nodes, 
+			LinkedList<String> vertices,
+			ObjectVariablePattern nodeToDelete) 
+	{
+		EList<LinkVariablePattern> linkVPs;		
+		for (ObjectVariablePattern node: nodes) {       	
+			if (node == nodeToDelete) {
+				continue;
+			}
+			
+			linkVPs = node.getLinkVariablePatterns();
+			for (LinkVariablePattern link: linkVPs) {
+				if (link.getTarget() != nodeToDelete) {
+					int source = vertices.indexOf(node.getName());
+	        		int target = vertices.indexOf(link.getTarget().getName());
+	        		graph.addEdge(source,target);
+	        	  
+				}
+			}	
+        }
+		
+	}
+
 	/** Get a list of link (edge) indexes, which are related to the target pattern
 	 * 
 	 * @param linkVPs The list of LinkVariablePattern objects (edges)
@@ -569,6 +749,8 @@ public class TGGRuleUtil {
 		}
 	}
 	
+	//========================= Common methods ============================================//
+	
 	/** Generate a random number between min and max
 	 * 
 	 * @param max The max possible value
@@ -584,4 +766,46 @@ public class TGGRuleUtil {
 		
 		return rand;
 	}
+
+	private String getObjectVariableName(EObject objVar) {
+		String objVarName = "";
+		if (objVar instanceof ObjectVariablePattern) {
+			objVarName = ((ObjectVariablePattern) objVar).getName();
+		} else if (objVar instanceof ContextObjectVariablePattern) {
+			objVarName = ((ContextObjectVariablePattern) objVar).getName();
+		}
+
+		return objVarName;
+	}
+	
+	/** Get a list of classifiers inside a package
+	 * 
+	 * @param List<EPackage> The list of packages
+	 * @return Map<String, List<EClassifier>> The list of the classifiers inside that package
+	 */
+	private Map<String, List<EClassifier>> getClassifiersInPackageList(List<EPackage> packages) {
+		// Key: Package name, Value: List of the classifiers inside that package
+		Map<String, List<EClassifier>> classifierNames = new HashMap<String, List<EClassifier>>();
+		for (EPackage p : packages) {
+			classifierNames.put(p.getName(), p.getEClassifiers());
+		}
+
+		return classifierNames;
+	}
+	
+	/** Get a list of a types inside a list of classifiers
+	 * 
+	 * @param Map<String, List<EClassifier>> The list of classifiers
+	 * @return List<EClassifier> The list of types
+	 */
+	private List<EClassifier> combineObjectClassifierLists(Map<String, List<EClassifier>> input) {
+		Set<String> keys = input.keySet();
+		List<EClassifier> outputList = new ArrayList<EClassifier>();
+		for (String key : keys) {
+			outputList.addAll(input.get(key));
+		}
+
+		return outputList;
+	}
+	
 }
