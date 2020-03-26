@@ -68,16 +68,16 @@ public class MutationTestExecuter {
 				System.out.println("Mutating file: " + tggFilePath.getFileName());
 
 				projectPath = testProject.getLocation().toFile().toPath();
-				createRuleFileBackup(projectPath, tggFilePath);
-
+				
 				tggFile = tggRuleUtil.loadRule(testProject.getFile(tggFilePath.toString()));
 
-//				isSuccess = tggRuleUtil.getMutantRule(tggFile);
-				isSuccess = true;
+				isSuccess = tggRuleUtil.getMutantRule(tggFile);
+//				isSuccess = true;
 
 				if (!isSuccess) {
 					System.out.println("Unable to mutate. Trying different file");
-					restoreOriginalRuleFile(projectPath, tggFilePath);
+				} else {
+					createRuleFileBackup(projectPath, tggFilePath);
 				}
 			}
 
@@ -87,11 +87,11 @@ public class MutationTestExecuter {
 				tggFile.eResource().save(Collections.emptyMap());
 
 				// build the project with the new TGG file
-				testProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-
-				// TODO execute launch configuration
-				System.out.println("Starting tests..");
-				DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
+//				testProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+//
+//				// TODO execute launch configuration
+//				System.out.println("Starting tests..");
+//				DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 
 				// TODO retrieve results
 
@@ -100,7 +100,7 @@ public class MutationTestExecuter {
 				System.out.println("Unable to mutate any file");
 			}
 
-			restoreOriginalRuleFile(projectPath, tggFilePath);
+//			restoreOriginalRuleFile(projectPath, tggFilePath);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -114,6 +114,7 @@ public class MutationTestExecuter {
 	}
 
 	private void createRuleFileBackup(Path projectPath, Path tggFilePath) throws IOException {
+		System.out.println("Creating backup");
 		Path fileName = tggFilePath.getFileName();
 		Path sourcePath = projectPath.resolve(tggFilePath);
 		Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
