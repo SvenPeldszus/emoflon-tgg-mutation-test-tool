@@ -6,6 +6,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -15,6 +17,7 @@ public class TestConfigurationPage extends WizardPage{
     private Composite container;
     
     private Text iterations;
+    
     private Text timeout;
 
     public TestConfigurationPage() {
@@ -42,10 +45,18 @@ public class TestConfigurationPage extends WizardPage{
         timeout = new Text(container, SWT.NONE);
         timeout.setText("");
         
+        
+        timeout.addModifyListener(modifyEvent -> {
+        	setPageComplete(!timeout.getText().isEmpty() && !iterations.getText().isEmpty());
+        });
+        
+        iterations.addModifyListener(modifyEvent -> {
+        	setPageComplete(!timeout.getText().isEmpty() && !iterations.getText().isEmpty());
+        });
+        
         // required to avoid an error in the system
         setControl(container);
         setPageComplete(false);
-
     }
 
 	public Text getIterations() {
@@ -55,7 +66,4 @@ public class TestConfigurationPage extends WizardPage{
 	public Text getTimeout() {
 		return timeout;
 	}
-    
-    
-
 }
