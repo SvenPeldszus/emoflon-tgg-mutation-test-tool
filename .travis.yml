@@ -8,9 +8,9 @@ cache:
   - $HOME/.m2
 addons:
   sonarcloud:
-    organization: "svenpeldszus-github" # the key of the org you chose at step #3
+    organization: "svenpeldszus-github"
     token:
-      secure: "a72b83a4eff0ded471ac6ee28658097488465911" # encrypted value of your token
+	secure: ${SONAR_TOKEN}
 script:
   # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
   - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -fae -Dsonar.projectKey=SvenPeldszus_emoflon-tgg-mutation-test-tool
