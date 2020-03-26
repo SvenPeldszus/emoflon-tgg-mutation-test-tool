@@ -1,8 +1,5 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.debug.core.ILaunchConfiguration;
-
 
 public class MutationTestSerializableConfig {
 	
