@@ -6,22 +6,20 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 
-public class WizardHandler extends AbstractHandler{
+import de.unikoblenz.emoflon.tgg.mutationtest.MutationTestExecuter;
 
-	public void startWizard() {
-		
-	}
+public class WizardHandler extends AbstractHandler {
+
+	private MutationTestSetupWizard mutationTestSetupWizard = new MutationTestSetupWizard();
+
+	private MutationTestExecuter mutationTestRunner = new MutationTestExecuter();
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		WizardDialog wizardDialog = new WizardDialog(null, new MutationTestSetupWizard());
-	    if (wizardDialog.open() == Window.OK) {
-	        System.out.println("Ok pressed");
-	    } else {
-	        System.out.println("Cancel pressed");
-	    }
+		WizardDialog wizardDialog = new WizardDialog(null, mutationTestSetupWizard);
+		if (wizardDialog.open() == Window.OK) {
+			mutationTestRunner.executeTests(mutationTestSetupWizard.getMutationTestConfiguration());
+		}
 		return null;
 	}
 }
-
-

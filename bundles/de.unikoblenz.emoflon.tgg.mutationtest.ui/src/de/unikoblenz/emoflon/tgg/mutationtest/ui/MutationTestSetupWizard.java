@@ -28,9 +28,6 @@ import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfi
 
 public class MutationTestSetupWizard extends Wizard {
 
-	public MutationTestSetupWizard() {
-	}
-
 	private WizardFlowControl flowControl = new WizardFlowControl();
 
 	private TestConfigurationSelectionPage testConfigSelectionPage = new TestConfigurationSelectionPage(flowControl);
@@ -45,7 +42,7 @@ public class MutationTestSetupWizard extends Wizard {
 
 	private TestConfigurationPage testConfigurationPage = new TestConfigurationPage();
 
-	private MutationTestExecuter mutationTestRunner = new MutationTestExecuter();
+	private MutationTestConfiguration mutationTestConfiguration;
 
 	@Override
 	public void addPages() {
@@ -87,55 +84,59 @@ public class MutationTestSetupWizard extends Wizard {
 		if (testConfigSelectionPage.isNewConfigurationSelected()) {
 			// collect data
 			String configName = configCreationInputPage.getConfigName().getText();
-
 			IProject testProject = projectSelectionPage.getSelectedProject();
-
 			ILaunchConfiguration launchConfigFile = configSelectionPage.getLaunchConfiguration();
-
 			Integer iterations = Integer.valueOf(testConfigurationPage.getIterations().getText());
-
 			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout().getText());
 
 			MutationTestConfiguration configuration = new MutationTestConfiguration(configName, testProject,
 					launchConfigFile, iterations, timeout);
 
-			MutationTestSerializableConfig serializableConfig = new MutationTestSerializableConfig(configuration);
+			saveConfigurationToJsonFile(configuration);
 
-			if (configCreationInputPage.isSaveConfig()) {
-				Gson gson = new Gson();
-
-				String jsonFile = System.getProperty("user.home") + File.separator + "config.json";
-
-				Set<MutationTestSerializableConfig> configs = new HashSet<>();
-
-				if (new File(jsonFile).exists()) {
-					try (BufferedReader br = new BufferedReader(new FileReader(jsonFile))) {
-						configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
-						}.getType());
-						br.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				configs.add(serializableConfig);
-
-				String json = gson.toJson(configs);
-				try(FileWriter writer = new FileWriter(jsonFile)) {
-					writer.write(json);
-					writer.close();
-
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-			}
-
-			mutationTestRunner.executeTests(testProject, launchConfigFile, iterations, timeout);
+			mutationTestConfiguration = configuration;
 		} else {
-			mutationTestRunner.executeTests(testConfigSelectionPage.getConfiguration());
+			mutationTestConfiguration = testConfigSelectionPage.getConfiguration();
 		}
 		return true;
+	}
+
+	private void saveConfigurationToJsonFile(MutationTestConfiguration configuration) {
+		if (configCreationInputPage.isSaveConfig()) {
+			Gson gson = new Gson();
+
+			// TODO config location;
+			String jsonFile = System.getProperty("user.home") + File.separator + "config.json";
+
+			Set<MutationTestSerializableConfig> configs = new HashSet<>();
+
+			if (new File(jsonFile).exists()) {
+				try (BufferedReader br = new BufferedReader(new FileReader(jsonFile))) {
+					configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
+					}.getType());
+					br.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			configs.add(new MutationTestSerializableConfig(configuration));
+
+			String json = gson.toJson(configs);
+			try (FileWriter writer = new FileWriter(jsonFile)) {
+				writer.write(json);
+				writer.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	public MutationTestConfiguration getMutationTestConfiguration() {
+		return mutationTestConfiguration;
 	}
 
 }
