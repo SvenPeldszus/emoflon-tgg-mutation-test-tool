@@ -1,6 +1,7 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,8 +80,12 @@ public class TGGRuleUtil {
 	 */
 	public TripleGraphGrammarFile loadRule(IFile file) throws IOException, CoreException {
 		Resource ruleResource = resourceSet.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
-		ruleResource.load(file.getContents(), Collections.emptyMap());
-		EcoreUtil.resolveAll(resourceSet);
+		try (InputStream fileContent = file.getContents()) {
+			ruleResource.load(fileContent, Collections.emptyMap());
+			EcoreUtil.resolveAll(resourceSet);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		return (TripleGraphGrammarFile) ruleResource.getContents().get(0);
 	}
 	
@@ -133,6 +138,7 @@ public class TGGRuleUtil {
 			return false;
 		}
 		catch(Exception e) {
+			System.out.println(e);
 			return false;
 		}
 	}
