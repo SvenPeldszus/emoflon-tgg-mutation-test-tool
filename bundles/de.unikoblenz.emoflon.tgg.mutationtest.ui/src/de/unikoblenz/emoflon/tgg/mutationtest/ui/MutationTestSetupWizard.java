@@ -86,8 +86,8 @@ public class MutationTestSetupWizard extends Wizard {
 			String configName = configCreationInputPage.getConfigName().getText();
 			IProject testProject = projectSelectionPage.getSelectedProject();
 			ILaunchConfiguration launchConfigFile = configSelectionPage.getLaunchConfiguration();
-			Integer iterations = Integer.valueOf(testConfigurationPage.getIterations().getText());
-			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout().getText());
+			Integer iterations = Integer.valueOf(testConfigurationPage.getIterations());
+			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout());
 
 			MutationTestConfiguration configuration = new MutationTestConfiguration(configName, testProject,
 					launchConfigFile, iterations, timeout);

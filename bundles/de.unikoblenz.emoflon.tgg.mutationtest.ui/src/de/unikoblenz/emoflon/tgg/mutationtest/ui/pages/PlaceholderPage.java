@@ -5,10 +5,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
-public class PlaceholderPage extends WizardPage{
-	
-    private Composite container;
-	
+public class PlaceholderPage extends WizardPage {
+
 	public PlaceholderPage() {
 		super("Placeholder");
 		setTitle("Placeholder");
@@ -17,12 +15,12 @@ public class PlaceholderPage extends WizardPage{
 
 	@Override
 	public void createControl(Composite parent) {
-        container = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        container.setLayout(layout);
+		Composite container = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		container.setLayout(layout);
 
-        setControl(container);
-        setPageComplete(true);
+		setControl(container);
+		setPageComplete(true);
 	}
 
 }

@@ -7,8 +7,6 @@ import org.eclipse.swt.widgets.*;
 
 public class TestConfigurationPage extends WizardPage{
 	
-    private Composite container;
-    
     private Text iterations;
     
     private Text timeout;
@@ -21,7 +19,7 @@ public class TestConfigurationPage extends WizardPage{
 
     @Override
     public void createControl(Composite parent) {
-        container = new Composite(parent, SWT.NONE);
+    	Composite container = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
         layout.numColumns = 2;
@@ -52,11 +50,11 @@ public class TestConfigurationPage extends WizardPage{
         setPageComplete(false);
     }
 
-	public Text getIterations() {
-		return iterations;
+	public String getIterations() {
+		return iterations.getText();
 	}
 
-	public Text getTimeout() {
-		return timeout;
+	public String getTimeout() {
+		return timeout.getText();
 	}
 }

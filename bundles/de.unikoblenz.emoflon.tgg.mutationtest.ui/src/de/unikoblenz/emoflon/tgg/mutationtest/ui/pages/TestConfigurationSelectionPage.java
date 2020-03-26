@@ -28,8 +28,6 @@ import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfi
 
 public class TestConfigurationSelectionPage extends WizardPage {
 
-	private Composite container;
-
 	private MutationTestConfiguration configuration;
 
 	private MutationTestConfiguration newConfiguration = new MutationTestConfiguration("New configuration", null, null,
@@ -46,7 +44,7 @@ public class TestConfigurationSelectionPage extends WizardPage {
 
 	@Override
 	public void createControl(Composite parent) {
-		container = new Composite(parent, SWT.NONE);
+		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 1;

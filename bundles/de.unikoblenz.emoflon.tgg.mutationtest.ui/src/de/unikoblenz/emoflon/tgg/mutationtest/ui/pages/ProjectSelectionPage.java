@@ -17,13 +17,7 @@ import org.eclipse.swt.widgets.*;
 
 public class ProjectSelectionPage extends WizardPage {
 
-	private Composite container;
-
 	private IProject selectedProject;
-
-	private Map<String, IProject> projectMap = new HashMap<>();
-
-	private List projectListViewer;
 
 	public ProjectSelectionPage() {
 		super("Project Selection");
@@ -33,21 +27,22 @@ public class ProjectSelectionPage extends WizardPage {
 
 	@Override
 	public void createControl(Composite parent) {
-		container = new Composite(parent, SWT.NONE);
+		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 1;
 		Label label1 = new Label(container, SWT.NONE);
 		label1.setText("Select a project..");
 
-		projectListViewer = new List(container, SWT.BORDER | SWT.SINGLE);
+		List projectListViewer = new List(container, SWT.BORDER | SWT.SINGLE);
 
 		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] projects = workspaceRoot.getProjects();
 
 		// keep projects in a map for selection
-
-		Arrays.asList(projects).stream().filter(this::hasTggNature).forEach(iproject -> projectMap.put(iproject.toString(), iproject));
+		Map<String, IProject> projectMap = new HashMap<>();
+		Arrays.asList(projects).stream().filter(this::hasTggNature)
+				.forEach(iproject -> projectMap.put(iproject.toString(), iproject));
 
 		// TODO filter projects for tgg projects
 		projectMap.keySet().forEach(projectListViewer::add);
@@ -68,8 +63,6 @@ public class ProjectSelectionPage extends WizardPage {
 				setPageComplete(true);
 			}
 		});
-
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 
 		// required to avoid an error in the system
 		setControl(container);
