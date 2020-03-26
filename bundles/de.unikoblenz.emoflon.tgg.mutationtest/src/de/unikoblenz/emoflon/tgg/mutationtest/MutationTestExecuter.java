@@ -1,6 +1,5 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,15 +7,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Random;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationType;
-import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.ui.DebugUITools;
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.gravity.eclipse.io.ExtensionFileVisitor;
 import org.junit.runner.JUnitCore;

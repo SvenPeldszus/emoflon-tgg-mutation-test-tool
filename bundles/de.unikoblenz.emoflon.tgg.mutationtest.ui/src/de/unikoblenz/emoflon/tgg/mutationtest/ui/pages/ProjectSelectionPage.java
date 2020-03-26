@@ -1,16 +1,8 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.ui.pages;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -22,11 +14,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfig;
 
 public class ProjectSelectionPage extends WizardPage {
 
