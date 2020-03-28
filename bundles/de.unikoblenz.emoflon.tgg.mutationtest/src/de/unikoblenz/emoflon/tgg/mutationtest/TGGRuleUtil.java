@@ -105,25 +105,26 @@ public class TGGRuleUtil {
 			List<Integer> randomIndexes = Arrays.asList(indexes);
 			Collections.shuffle(randomIndexes);
 			
-			//int index = 3;
-			for (Integer index : randomIndexes) {					
+			int index = 3;
+			//for (Integer index : randomIndexes) {					
 				switch(index) {
 				  case 0:
-					  isSuccess = false;
-					  //isSuccess =  addMutant_DeleteSourcePattern(rule); 
+					  // Delete source pattern node
+					  isSuccess =  addMutant_DeletePattern(rule, true); 
 					  break;
 				  case 1:
-					  isSuccess = false;
-					  //isSuccess =  addMutant_DeleteTargetPattern(rule);
+					  // Delete target pattern node
+					  isSuccess =  addMutant_DeletePattern(rule, false);
 					  break;
 				  case 2:
 					  isSuccess =  addMutant_DeleteCorrespondencePattern(rule);
 					  break;
 				  case 3:
-					  isSuccess =  addAMutant_AddSourcePattern(rule);
+					  // Add source pattern node
+					  isSuccess =  addAMutant_AddPattern(rule, true);
 					  break;
 				  case 4:
-					  isSuccess =  addAMutant_AddTargetPattern(rule);
+					  isSuccess =  addAMutant_AddPattern(rule, false);
 					  break;
 				  case 5:
 					  isSuccess =  addAMutant_AddCorrespondence(rule);
@@ -133,8 +134,9 @@ public class TGGRuleUtil {
 				}
 				if (isSuccess)
 					return true;
-			}
-			return false;
+			//}
+			//return false;
+				return isSuccess;
 		}
 		catch(Exception e) {
 			System.out.println(e);
@@ -144,36 +146,50 @@ public class TGGRuleUtil {
 	
 	// ========================== Add nodes mutants ================================//
 	
-	/** Introduce the mutant into the TGG file, which adds one source pattern  
+	/** Introduce the mutant into the TGG file, which adds one source or target pattern  
 	 * 
 	 * @param Rule The TripleGraphGrammarFile.Rule rule file
 	 * @return boolean Indicate that a source node was added successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 * @throws CoreException if this method fails. 
+	 * The status code associated with exception reflects the cause of the failure.
 	 */
-	public boolean addAMutant_AddSourcePattern(Rule rule) throws CoreException {
-		List<ObjectVariablePattern> sourceObjects = rule.getSourcePatterns();
-		
-		if (sourceObjects == null) {
-			return false;
-		}
-		
-		ObjectVariablePattern node = createNode(rule, true);
-		if (node == null)
-			return false;
-
+	public boolean addAMutant_AddPattern(Rule rule, boolean isSourceNode) 
+			throws CoreException 
+	{
+		EList<ObjectVariablePattern> nodes;	
+		ObjectVariablePattern newNode;
+		Schema schema;
 		try {
-			if (sourceObjects.size() > 1) {
-				ObjectVariablePattern sourceObject = sourceObjects.get(sourceObjects.size() - 1);
-				ObjectVariablePattern targetObject = node;
+			schema = rule.getSchema();
+			if (schema == null)
+				return false;
+			
+			if (isSourceNode) {
+				nodes = rule.getSourcePatterns();
+			} else {
+				nodes = rule.getTargetPatterns();;
+			}
+					
+			if (nodes == null || nodes.size() == 0) {
+				return false;
+			}
+			
+			newNode = createNode(schema, nodes, true);
+			if (newNode == null)
+				return false;
+		
+			if (nodes.size() > 1) {
+				ObjectVariablePattern sourceObject = nodes.get(nodes.size() - 1);
+				ObjectVariablePattern targetObject = newNode;
 				Operator op = TggFactory.eINSTANCE.createOperator();
 				op.setValue(DEFAULT_OPERATOR);
-				// add a link
+				// Add a link
 				LinkVariablePattern link = createLinkEdge(rule, sourceObject, targetObject, op);
 				
 				if (link == null)
 					return false;
 				// Add the new node to the TGG rule
-				sourceObjects.add(node);
+				nodes.add(newNode);
 				sourceObject.getLinkVariablePatterns().add(link);
 			}
 			
@@ -183,47 +199,7 @@ public class TGGRuleUtil {
 			return false;
 		}
 	}
-	
-	/** Introduce the mutant into the TGG file, which adds one target pattern  
-	 * 
-	 * @param Rule The TripleGraphGrammarFile.Rule rule file
-	 * @return boolean Indicate that a source node was added successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
-	 */
-	public boolean addAMutant_AddTargetPattern(Rule rule) throws CoreException {
-		List<ObjectVariablePattern> targetObjects = rule.getTargetPatterns();
 		
-		if (targetObjects == null) {
-			return false;
-		}
-		
-		ObjectVariablePattern node = createNode(rule, false);
-		if (node == null)
-			return false;
-
-		try {
-			if (targetObjects.size() > 1) {
-				ObjectVariablePattern sourceObject = targetObjects.get(targetObjects.size() - 1);
-				ObjectVariablePattern targetObject = node;
-				Operator op = TggFactory.eINSTANCE.createOperator();
-				op.setValue(DEFAULT_OPERATOR);
-				// add a link
-				LinkVariablePattern link = createLinkEdge(rule, sourceObject, targetObject, op);
-				
-				if (link == null)
-					return false;
-				// Add the new node to the TGG rule
-				targetObjects.add(node);
-				sourceObject.getLinkVariablePatterns().add(link);
-			}
-			
-			return true;
-		}
-		catch(Exception e) {
-			return false;
-		}
-	}
-	
 	/** Introduce the mutant into the TGG file, which adds one correspondence pattern  
 	 * 
 	 * @param Rule The TripleGraphGrammarFile.Rule rule file
@@ -247,30 +223,28 @@ public class TGGRuleUtil {
 		return true;
 	}
 	
-	public ObjectVariablePattern createNode(Rule rule, boolean isSourceNode) {
-		Schema schema;
-		List<ObjectVariablePattern> sourceObjects;
-		List<ObjectVariablePattern> targetObjects;
-		
-		try {
-			schema        = rule.getSchema();
-			sourceObjects = rule.getSourcePatterns();
-			targetObjects = rule.getTargetPatterns();
-			
-			if (schema == null || sourceObjects == null || targetObjects == null)
-				return null;
-	
+	public ObjectVariablePattern createNode(
+			Schema schema, 
+			List<ObjectVariablePattern> nodes, 
+			boolean isSourceNode) 
+	{
+		Map<String, List<EClassifier>> classifiers;
+		try {	
 			// Get all possible node types
-			Map<String, List<EClassifier>> classifiers;
 			if (isSourceNode) {
 				classifiers = getClassifiersInPackageList(schema.getSourceTypes());
 			} else {
 				classifiers = getClassifiersInPackageList(schema.getTargetTypes());
 			}	
+			
+			if (classifiers == null || classifiers.size() == 0) {
+				return null;
+			}
 			List<EClassifier> outputList = combineObjectClassifierLists(classifiers);
 	
 			// Define a node name and type
 			int classifierIndex = getRandomNumber(0, outputList.size() - 1);
+			
 			EClass type = (EClass)outputList.get(classifierIndex);
 			String nodeName = "mutant" + System.currentTimeMillis();
 	
@@ -362,30 +336,38 @@ public class TGGRuleUtil {
 	}
 
 	
-	// ========================== Delete nodes mutants ================================//
-	/** Add a mutant into the TGG rule, which deletes the last source pattern
+	// ========================== Delete node mutants ================================//
+	/** Add a mutant into the TGG rule, which deletes the source pattern node
 	 * 
 	 * @param Rule The TripleGraphGrammarFile.Rule rule file
 	 * @return boolean Indicate that a source node was deleted successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 * @throws CoreException if this method fails. 
+	 * The status code associated with exception reflects the cause of the failure.
 	 */
-	public boolean addMutant_DeleteSourcePattern(Rule rule) throws CoreException {
-		EList<ObjectVariablePattern> sourceObjects = rule.getSourcePatterns();
+	public boolean addMutant_DeletePattern(Rule rule, boolean isSourceNode) 
+			throws CoreException 
+	{
+		EList<ObjectVariablePattern> nodes;
 		
-		if (sourceObjects == null || sourceObjects.size() == 0) {
+		if (isSourceNode) {
+			nodes = rule.getSourcePatterns();
+		} else {
+			nodes = rule.getTargetPatterns();;
+		}
+				
+		if (nodes == null || nodes.size() == 0) {
 			return false;
 		}
 		
-		boolean isSuccess = deleteLastNode(rule, false);
-		
-		return isSuccess;			
+		return deleteNode(rule, isSourceNode);			
 	}
 	
-	/** Add a mutant into the TGG rule, which deletes the last target pattern
+	/** Add a mutant into the TGG rule, which deletes the target pattern node
 	 * 
 	 * @param Rule The TripleGraphGrammarFile.Rule rule file
 	 * @return boolean Indicate that a source node was deleted successfully
-	 * @throws CoreException if this method fails. The status code associated with exception reflects the cause of the failure.
+	 * @throws CoreException if this method fails. 
+	 * The status code associated with exception reflects the cause of the failure.
 	 */
 	public boolean addMutant_DeleteTargetPattern(Rule rule) throws CoreException {
 		EList<ObjectVariablePattern> targetObjects = rule.getTargetPatterns();
@@ -394,7 +376,7 @@ public class TGGRuleUtil {
 			return false;
 		}
 		
-		boolean isSuccess = deleteLastNode(rule, false);
+		boolean isSuccess = deleteNode(rule, false);
 		
 		return isSuccess;
 	}
@@ -423,7 +405,7 @@ public class TGGRuleUtil {
 		}	
 	}
 	
-	public boolean deleteLastNode(Rule rule, boolean isSourceNode) {
+	public boolean deleteNode(Rule rule, boolean isSourceNode) {
 		List<CorrVariablePattern> correspondenceList = null;
 		List<ObjectVariablePattern> sourceObjects = null;
 		List<ObjectVariablePattern> targetObjects = null;
@@ -445,8 +427,8 @@ public class TGGRuleUtil {
 				nodes = targetObjects;
 			}
 			
-			// get nodes, which do not make a model invalid
-			List <ObjectVariablePattern> nodesToDelete = getNodesToDelete(rule, isSourceNode);
+			// get a node, which does not make a model invalid
+			List <ObjectVariablePattern> nodesToDelete = getNodeToDelete(rule, isSourceNode);
 			if (nodesToDelete == null)
 				return false;
 			
@@ -495,7 +477,7 @@ public class TGGRuleUtil {
 		}		
 	}
 	
-	public List <ObjectVariablePattern> getNodesToDelete(Rule rule, boolean isSourceNode) {
+	public List <ObjectVariablePattern> getNodeToDelete(Rule rule, boolean isSourceNode) {
 		List<CorrVariablePattern> correspondenceList = null;
 		List<ObjectVariablePattern> sourceObjects = null;
 		List<ObjectVariablePattern> targetObjects = null;
@@ -532,7 +514,7 @@ public class TGGRuleUtil {
 				ObjectVariablePattern nodeToDelete = nodes.get(i);
 				
 				// check if a model is connected
-				boolean isModelValid = checkIfModelValid(sourceObjects,targetObjects,  correspondenceList, nodeToDelete);
+				boolean isModelValid = checkIfModelValid(nodes,  nodeToDelete);
 				if (isModelValid) {
 					nodesToDelete.add(nodeToDelete);
 				}
@@ -631,54 +613,29 @@ public class TGGRuleUtil {
 	    } 	    	          
 	}
 	
-	private boolean checkIfModelValid(List<ObjectVariablePattern> sourceObjects,
-			List<ObjectVariablePattern> targetObjects,
-			List<CorrVariablePattern> correspondenceList,
+	private boolean checkIfModelValid(List<ObjectVariablePattern> nodes,
 			ObjectVariablePattern nodeToDelete) 
-	{
-		// all nodes = source nodes + target nodes
-        // all edges = links between sources + links between targets + correspondences 
-		
+	{		
 		// Map names to numbers
 		LinkedList<String> vertices = new LinkedList<>();
 		
 		// === Create a list of vertices  === //
 		 String name;
-		 for (ObjectVariablePattern node: sourceObjects) {       	
+		 for (ObjectVariablePattern node: nodes) {       	
 			 if (node == nodeToDelete) {
 				 continue;
 			 }
 			 name = node.getName();
 			 if (!vertices.contains(name)) {
 				 vertices.add(name);
-			 }				 
-		 }
-		 // to-do move to another method
-		 for (ObjectVariablePattern node: targetObjects) {       	
-			 if (node == nodeToDelete) {
-				 continue;
-			 }
-			 name = node.getName();
-			 if (!vertices.contains(name)) {
-				 vertices.add(name);
-			 };				 
+			 }				 		 
 		 }
 		
 		Graph graph = new Graph(vertices.size());
 		
         // === Create a list of edges  === //
 		// Add source links
-        addEdgesToGraphMappedFromLinks(graph, sourceObjects, vertices, nodeToDelete);
-        // Add target links
-        addEdgesToGraphMappedFromLinks(graph, targetObjects, vertices, nodeToDelete);
-        // Add correspondence links
-        for (CorrVariablePattern correspondence: correspondenceList) {
-        	if (correspondence.getSource() != nodeToDelete && correspondence.getTarget() != nodeToDelete) {      		
-        		int source = vertices.indexOf(correspondence.getSource().getName());
-        		int target = vertices.indexOf(correspondence.getTarget().getName());
-        		graph.addEdge(source,target);
-        	}
-        }
+        addEdgesToGraphMappedFromLinks(graph, nodes, vertices, nodeToDelete);
 
         return graph.isConnected();					
 	}
