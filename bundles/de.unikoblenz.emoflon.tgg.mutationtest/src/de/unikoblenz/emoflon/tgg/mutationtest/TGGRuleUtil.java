@@ -118,15 +118,19 @@ public class TGGRuleUtil {
 					  break;
 				  case 2:
 					  isSuccess =  addMutant_DeleteCorrespondencePattern(rule);
+					  System.out.println("DeleteCorrespondencePattern");
 					  break;
 				  case 3:
 					  isSuccess =  addAMutant_AddSourcePattern(rule);
+					  System.out.println("AddSourcePattern");
 					  break;
 				  case 4:
 					  isSuccess =  addAMutant_AddTargetPattern(rule);
+					  System.out.println("AddTargetPattern");
 					  break;
 				  case 5:
 					  isSuccess =  addAMutant_AddCorrespondence(rule);
+					  System.out.println("AddCorrespondence");
 					  break;
 				  default:
 					  isSuccess =  false;
@@ -180,6 +184,7 @@ public class TGGRuleUtil {
 			return true;
 		}
 		catch(Exception e) {
+			System.out.println(e);
 			return false;
 		}
 	}
@@ -220,6 +225,7 @@ public class TGGRuleUtil {
 			return true;
 		}
 		catch(Exception e) {
+			System.out.println(e);
 			return false;
 		}
 	}
@@ -419,6 +425,7 @@ public class TGGRuleUtil {
 			return true;
 		}
 		catch(Exception e) {
+			System.out.println(e);
 			return false;
 		}	
 	}
@@ -491,6 +498,7 @@ public class TGGRuleUtil {
 			return true;
 		}
 		catch(Exception e) {
+			System.out.println(e);
 			return false;
 		}		
 	}
