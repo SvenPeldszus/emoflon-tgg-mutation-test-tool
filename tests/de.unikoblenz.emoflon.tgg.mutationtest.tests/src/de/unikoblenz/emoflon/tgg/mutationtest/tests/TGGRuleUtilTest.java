@@ -34,6 +34,7 @@ import org.gravity.eclipse.io.GitCloneException;
 import org.gravity.eclipse.io.GitTools;
 import org.gravity.eclipse.util.EclipseProjectUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.model.InitializationError;
 import org.moflon.tgg.mosl.TGGStandaloneSetup;
@@ -61,6 +62,7 @@ public class TGGRuleUtilTest {
 	 * 
 	 * @throws InitializationError If the initialization of the test case failed
 	 */
+	@Ignore
 	@Test
 	public void loadTGGRuleTest() throws InitializationError {
 		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
