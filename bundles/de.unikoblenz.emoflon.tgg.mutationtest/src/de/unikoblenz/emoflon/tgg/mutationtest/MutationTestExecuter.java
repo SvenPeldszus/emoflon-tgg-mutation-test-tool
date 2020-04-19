@@ -62,6 +62,8 @@ public class MutationTestExecuter {
 	private Path tggFilePath = null;
 
 	private Path projectPath;
+	
+	private MutantResult mutantResult;
 
 	public MutationTestExecuter(MutationTestConfiguration mutationTestConfiguration) {
 		this(mutationTestConfiguration.getProject(), mutationTestConfiguration.getLaunchConfig(),
@@ -111,7 +113,7 @@ public class MutationTestExecuter {
 
 			tggFile = tggRuleUtil.loadRule(tggProject.getFile(tggFilePath.toString()));
 
-			MutantResult mutantResult = tggRuleUtil.getMutantRule(tggFile);
+			mutantResult = tggRuleUtil.getMutantRule(tggFile);
 
 			if (mutantResult.isSuccess()) {
 				createRuleFileBackup();
@@ -235,5 +237,11 @@ public class MutationTestExecuter {
 	public ILaunchConfiguration getLaunchConfigFile() {
 		return launchConfigFile;
 	}
+
+	public MutantResult getMutantResult() {
+		return mutantResult;
+	}
+	
+	
 
 }

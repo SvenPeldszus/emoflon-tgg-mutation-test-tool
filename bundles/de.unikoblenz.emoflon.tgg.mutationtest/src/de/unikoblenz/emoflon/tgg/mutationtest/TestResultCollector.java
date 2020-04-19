@@ -11,7 +11,6 @@ import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
 public class TestResultCollector {
 	
 	private TestResultCollector() {
-		
 	}
 	
 	public static TestResultCollector INSTANCE = new TestResultCollector();
@@ -23,9 +22,10 @@ public class TestResultCollector {
 	public void processTestResults(Map<String, String> testResultData) {
 		
 		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
+		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult().getMutationName();
 
 		List<String[]> resultData = testResultData.entrySet().stream()
-				.map(testResultEntry -> createResultDataArray("myMutation", testResultEntry.getKey(), testResultEntry.getValue()))
+				.map(testResultEntry -> createResultDataArray(mutationName, testResultEntry.getKey(), testResultEntry.getValue()))
 				.collect(Collectors.toList());
 		try {
 			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject().getName(), resultData);
