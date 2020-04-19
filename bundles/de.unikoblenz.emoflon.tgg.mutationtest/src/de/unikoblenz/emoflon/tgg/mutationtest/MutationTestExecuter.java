@@ -35,7 +35,6 @@ import org.eclipse.debug.core.model.RuntimeProcess;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
-import de.unikoblenz.emoflon.tgg.mutationtest.util.ProjectBuildProgressMonitor;
 
 //TODO static instance, executeTests Parameters as constructor, static call to method to execute next iteration
 
