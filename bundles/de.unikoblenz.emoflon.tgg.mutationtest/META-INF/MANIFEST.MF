@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.junit,
  org.eclipse.jface,
  org.eclipse.jdt.junit;bundle-version="3.11.700",
- org.eclipse.jdt.core;bundle-version="3.21.0"
+ org.eclipse.jdt.core;bundle-version="3.21.0",
+ org.moflon.core.build;bundle-version="1.1.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest
 Bundle-ActivationPolicy: lazy

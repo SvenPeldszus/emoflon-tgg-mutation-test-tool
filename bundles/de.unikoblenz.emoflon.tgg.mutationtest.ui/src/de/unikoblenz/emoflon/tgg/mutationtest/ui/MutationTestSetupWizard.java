@@ -106,7 +106,7 @@ public class MutationTestSetupWizard extends Wizard {
 			Gson gson = new Gson();
 
 			// TODO config location;
-			String jsonFile = System.getProperty("user.home") + File.separator + "config.json";
+			String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator + "config.json";
 
 			Set<MutationTestSerializableConfig> configs = new HashSet<>();
 

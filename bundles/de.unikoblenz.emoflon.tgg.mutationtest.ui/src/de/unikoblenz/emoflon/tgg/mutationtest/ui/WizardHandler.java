@@ -12,13 +12,12 @@ public class WizardHandler extends AbstractHandler {
 
 	private MutationTestSetupWizard mutationTestSetupWizard = new MutationTestSetupWizard();
 
-	private MutationTestExecuter mutationTestRunner = new MutationTestExecuter();
-
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		WizardDialog wizardDialog = new WizardDialog(null, mutationTestSetupWizard);
 		if (wizardDialog.open() == Window.OK) {
-			mutationTestRunner.executeTests(mutationTestSetupWizard.getMutationTestConfiguration());
+			MutationTestExecuter mutationTestRunner = new MutationTestExecuter(mutationTestSetupWizard.getMutationTestConfiguration());
+			mutationTestRunner.executeTests();
 		}
 		return null;
 	}
