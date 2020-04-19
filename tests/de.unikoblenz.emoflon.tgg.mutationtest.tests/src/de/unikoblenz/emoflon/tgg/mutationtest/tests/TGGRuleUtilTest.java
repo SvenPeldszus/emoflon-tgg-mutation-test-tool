@@ -67,7 +67,7 @@ public class TGGRuleUtilTest {
 	public void loadTGGRuleTest() throws InitializationError {
 		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
 				"socialNetworkSynchronisation/version3/");
-		
+
 		Path projectPath = project.getLocation().toFile().toPath();
 		try {
 			TGGRuleUtil util = new TGGRuleUtil(project);
@@ -80,35 +80,33 @@ public class TGGRuleUtilTest {
 				if (IbexTGGNature.SCHEMA_FILE.equals(ruleFile.toString())) {
 					continue;
 				}
-				
+
 				TripleGraphGrammarFile tggFile = util.loadRule(project.getFile(ruleFile.toString()));
-				
+
 				// Add a mutant
 				boolean isSuccess = util.getMutantRule(tggFile);
 				if (!isSuccess) {
 					// skip test
-					// 
-				} else {	
+					//
+				} else {
 					// backup the original tgg file
-					Path fileName = ruleFile.getFileName();	
+					Path fileName = ruleFile.getFileName();
 					Path sourcePath = projectPath.resolve(ruleFile);
-					Path targetPath = sourcePath.resolveSibling(fileName + ".backup");	
+					Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
 					Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-						
+
 					// save new tgg data to the original tgg file
 					tggFile.eResource().save(Collections.emptyMap());
-					
-					
-					
-					// backup the file!!! file.tgg.backup 		- done
+
+					// backup the file!!! file.tgg.backup - done
 					// save a rule to a file with the same name - done
 					// run a test
 					// add a value to a report
 					// delete the mutant file
 					// restore backup file.tgg.backup -> file.tgg
-					
+
 				}
-				
+
 				assertNotNull(tggFile);
 			}
 		} catch (IOException | CoreException e) {
@@ -204,13 +202,11 @@ public class TGGRuleUtilTest {
 			throw new InitializationError(e);
 		}
 	}
-	
-	private IProject getTGGProject(String projectFolder, String folder, int projetIndex) 
-			throws InitializationError {
-		try  {
+
+	private IProject getTGGProject(String projectFolder, String folder, int projetIndex) throws InitializationError {
+		try {
 			File parentProject = new File(projectFolder);
-			List<IProject> projects = EclipseProjectUtil.importProjects(
-					new File(parentProject, folder),
+			List<IProject> projects = EclipseProjectUtil.importProjects(new File(parentProject, folder),
 					new NullProgressMonitor());
 			return projects.get(projetIndex);
 		} catch (CoreException e) {

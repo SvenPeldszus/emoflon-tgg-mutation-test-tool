@@ -53,13 +53,13 @@ public class MutationTestExecuter {
 	private final Integer timeout;
 
 	// runtime helper variables
-	
+
 	private String projectName;
 
 	private Integer iterationCount = 0;
 
 	private Path tggFilePath = null;
-	
+
 	private Path projectPath;
 
 	public MutationTestExecuter(MutationTestConfiguration mutationTestConfiguration) {
@@ -76,7 +76,7 @@ public class MutationTestExecuter {
 		this.projectPath = tggProject.getLocation().toFile().toPath();
 
 		projectName = tggProject.getName();
-		
+
 		INSTANCE = this;
 	}
 
@@ -94,7 +94,7 @@ public class MutationTestExecuter {
 		// point while no more new mutations are possible
 
 		TestResultCollector.INSTANCE.clearResultDataList();
-	
+
 		executeNextIteration();
 	}
 
@@ -114,7 +114,7 @@ public class MutationTestExecuter {
 
 			if (isSuccess) {
 				createRuleFileBackup();
-				
+
 				// save new tgg data to the original tgg file
 				System.out.println("Saving file");
 				tggFile.eResource().save(Collections.emptyMap());
@@ -226,7 +226,6 @@ public class MutationTestExecuter {
 		}
 
 	}
-	
 
 	public IProject getTggProject() {
 		return tggProject;
@@ -235,7 +234,5 @@ public class MutationTestExecuter {
 	public ILaunchConfiguration getLaunchConfigFile() {
 		return launchConfigFile;
 	}
-	
-	
 
 }
