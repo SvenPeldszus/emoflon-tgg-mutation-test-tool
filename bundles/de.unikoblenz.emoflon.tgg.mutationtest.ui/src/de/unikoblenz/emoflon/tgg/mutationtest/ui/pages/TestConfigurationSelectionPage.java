@@ -94,7 +94,7 @@ public class TestConfigurationSelectionPage extends WizardPage {
 	private Set<MutationTestSerializableConfig> readConfigsFromFile() {
 		Gson gson = new Gson();
 
-		String jsonFile = System.getProperty("user.home") + File.separator + "config.json";
+		String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator + "config.json";
 
 		Set<MutationTestSerializableConfig> configs = new HashSet<>();
 

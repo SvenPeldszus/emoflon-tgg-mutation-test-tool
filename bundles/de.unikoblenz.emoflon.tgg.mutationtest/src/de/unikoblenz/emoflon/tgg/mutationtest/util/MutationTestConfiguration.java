@@ -1,6 +1,7 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -9,6 +10,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jface.dialogs.MessageDialog;
 
 public class MutationTestConfiguration {
 
@@ -43,7 +45,6 @@ public class MutationTestConfiguration {
 					Arrays.asList(manager.getLaunchConfigurations()).stream()
 					.filter(config -> config.getName().equals(serializableConfig.getLaunchConfigName())).findFirst().get();
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

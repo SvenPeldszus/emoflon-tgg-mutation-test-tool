@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.*;
 
 public class ProjectSelectionPage extends WizardPage {
 
+	private static final String TGG_NATURE_IDENTIFIER = "org.emoflon.ibex.tgg.ide.nature";
 	private IProject selectedProject;
 
 	public ProjectSelectionPage() {
@@ -72,7 +73,7 @@ public class ProjectSelectionPage extends WizardPage {
 
 	private boolean hasTggNature(IProject project) {
 		try {
-			return project.hasNature("org.emoflon.ibex.tgg.ide.nature");
+			return project.hasNature(TGG_NATURE_IDENTIFIER);
 		} catch (CoreException e) {
 			return false;
 		}
