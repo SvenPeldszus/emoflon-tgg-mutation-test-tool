@@ -34,6 +34,7 @@ import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.eclipse.debug.core.model.RuntimeProcess;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 
 //TODO static instance, executeTests Parameters as constructor, static call to method to execute next iteration
@@ -110,9 +111,9 @@ public class MutationTestExecuter {
 
 			tggFile = tggRuleUtil.loadRule(tggProject.getFile(tggFilePath.toString()));
 
-			boolean isSuccess = tggRuleUtil.getMutantRule(tggFile);
+			MutantResult mutantResult = tggRuleUtil.getMutantRule(tggFile);
 
-			if (isSuccess) {
+			if (mutantResult.isSuccess()) {
 				createRuleFileBackup();
 
 				// save new tgg data to the original tgg file

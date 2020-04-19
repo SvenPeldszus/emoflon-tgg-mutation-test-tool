@@ -38,6 +38,9 @@ import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
+
+import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
+
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 
 /**
@@ -88,79 +91,58 @@ public class TGGRuleUtil {
 		return (TripleGraphGrammarFile) ruleResource.getContents().get(0);
 	}
 
-	public class MutantResult {
-		String mutationName;
-		boolean isSuccess;
 
-		String nodeName;
-		String nodeType;
-		String nodeOperator;
-		String nodeSourceName;
-		String nodeTargetName;
-		List<String> listLinkNames;
-		List<String> listCorrNames;
 
-		String errorText;
-	}
-
-	public boolean getMutantRule(TripleGraphGrammarFile tggFile) {
+	public MutantResult getMutantRule(TripleGraphGrammarFile tggFile) {
 		try {
 			List<Rule> rules = tggFile.getRules();
 
 			if (rules == null || rules.size() == 0) {
-				return false;
+				return null;
 			}
 
-			boolean isSuccess = false;
 			Rule rule = rules.get(0);
 
 			Integer[] indexes = new Integer[] { 0, 1, 2, 3, 4, 5 };
 			List<Integer> randomIndexes = Arrays.asList(indexes);
 			Collections.shuffle(randomIndexes);
-			MutantResult mutantResult;
+			MutantResult mutantResult = null;
 
 			for (Integer index : randomIndexes) {
 				switch (index) {
 				case 0:
 					// Delete source pattern node
 					mutantResult = addMutant_DeletePattern(rule, true);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				case 1:
 					// Delete target pattern node
 					mutantResult = addMutant_DeletePattern(rule, false);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				case 2:
 					// Delete correspondence node
 					mutantResult = addMutant_DeleteCorrespondencePattern(rule);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				case 3:
 					// Add source pattern node
 					mutantResult = addAMutant_AddPattern(rule, true);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				case 4:
 					// Add target pattern node
 					mutantResult = addAMutant_AddPattern(rule, false);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				case 5:
 					// Add correspondence node
 					mutantResult = addAMutant_AddCorrespondence(rule);
-					isSuccess = mutantResult.isSuccess;
 					break;
 				default:
-					isSuccess = false;
+					mutantResult = null;
 				}
-				if (isSuccess)
-					return true;
+				
 			}
-			return false;
+			return mutantResult;
 		} catch (Exception e) {
 			System.out.println(e);
-			return false;
+			return null;
 		}
 	}
 
@@ -182,8 +164,7 @@ public class TGGRuleUtil {
 		Schema schema;
 
 		MutantResult mutantResult = new MutantResult();
-		mutantResult.mutationName = isSourceNode ? "AddourcePattern" : "AddTargetPattern";
-		mutantResult.isSuccess = false;
+		mutantResult.setMutationName(isSourceNode ? "AddourcePattern" : "AddTargetPattern");
 
 		try {
 			schema = rule.getSchema();
@@ -210,7 +191,7 @@ public class TGGRuleUtil {
 				LinkVariablePattern link = createLinkEdge(rule, sourceObject, targetObject, op, mutantResult);
 
 				if (link == null) {
-					mutantResult.errorText = "there is no valid link";
+					mutantResult.setErrorText("there is no valid link");
 					return mutantResult;
 				}
 
@@ -223,11 +204,11 @@ public class TGGRuleUtil {
 				fillMutantDeleteResult(mutantResult, newNode, listLinkNames, null, targetObject.getName());
 			}
 
-			mutantResult.isSuccess = true;
+			mutantResult.setSuccess(true);
 			return mutantResult;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "addAMutant_AddPattern: " + e.getMessage();
+			mutantResult.setErrorText("addAMutant_AddPattern: " + e.getMessage());
 			return mutantResult;
 		}
 	}
@@ -240,7 +221,7 @@ public class TGGRuleUtil {
 			classifiers = isSourceNode ? getClassifiersInPackageList(schema.getSourceTypes())
 					: getClassifiersInPackageList(schema.getTargetTypes());
 			if (classifiers == null || classifiers.size() == 0) {
-				mutantResult.errorText = "it is not possible to get classifiers";
+				mutantResult.setErrorText("it is not possible to get classifiers");
 				return null;
 			}
 			List<EClassifier> outputList = combineObjectClassifierLists(classifiers);
@@ -264,7 +245,7 @@ public class TGGRuleUtil {
 			return node;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "createNode: " + e.getMessage();
+			mutantResult.setErrorText("createNode: " + e.getMessage());
 			return null;
 		}
 	}
@@ -291,7 +272,7 @@ public class TGGRuleUtil {
 			return null;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "createLinkEdge: " + e.getMessage();
+			mutantResult.setErrorText("createLinkEdge: " + e.getMessage());
 			return null;
 		}
 	}
@@ -307,8 +288,7 @@ public class TGGRuleUtil {
 	public MutantResult addAMutant_AddCorrespondence(Rule rule) throws CoreException {
 		List<CorrVariablePattern> corrObjects = rule.getCorrespondencePatterns();
 		MutantResult mutantResult = new MutantResult();
-		mutantResult.mutationName = "AddCorrespondence";
-		mutantResult.isSuccess = false;
+		mutantResult.setMutationName("AddCorrespondence");
 
 		if (corrObjects == null) {
 			return mutantResult;
@@ -322,7 +302,7 @@ public class TGGRuleUtil {
 		// Add the new correspondence to the TGG rule
 		corrObjects.add(correspondence);
 
-		mutantResult.isSuccess = true;
+		mutantResult.setSuccess(true);
 		return mutantResult;
 	}
 
@@ -367,7 +347,7 @@ public class TGGRuleUtil {
 			return correspondence;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = e.getMessage();
+			mutantResult.setErrorText(e.getMessage());
 			return null;
 		}
 	}
@@ -384,8 +364,7 @@ public class TGGRuleUtil {
 	 */
 	public MutantResult addMutant_DeleteCorrespondencePattern(Rule rule) throws CoreException {
 		MutantResult mutantResult = new MutantResult();
-		mutantResult.mutationName = "DeleteCorrespondencePattern";
-		mutantResult.isSuccess = false;
+		mutantResult.setMutationName("DeleteCorrespondencePattern");
 
 		try {
 			EList<CorrVariablePattern> corrPatterns = rule.getCorrespondencePatterns();
@@ -399,11 +378,11 @@ public class TGGRuleUtil {
 
 			corrPatterns.remove(indexToDelete);
 
-			mutantResult.isSuccess = true;
+			mutantResult.setSuccess(true);
 			return mutantResult;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = e.getMessage();
+			mutantResult.setErrorText(e.getMessage());
 			return mutantResult;
 		}
 	}
@@ -423,8 +402,7 @@ public class TGGRuleUtil {
 		List<AttrCond> attrConditions;
 
 		MutantResult mutantResult = new MutantResult();
-		mutantResult.mutationName = isSourceNode ? "DeleteSourcePattern" : "DeleteTargetPattern";
-		mutantResult.isSuccess = false;
+		mutantResult.setMutationName(isSourceNode ? "DeleteSourcePattern" : "DeleteTargetPattern");
 
 		try {
 			nodes = isSourceNode ? rule.getSourcePatterns() : rule.getTargetPatterns();
@@ -432,19 +410,19 @@ public class TGGRuleUtil {
 			attrConditions = rule.getAttrConditions();
 
 			if (nodes == null || nodes.size() == 0 || correspondenceList == null) {
-				mutantResult.errorText = "nodes or correspondenceList is null";
+				mutantResult.setErrorText("nodes or correspondenceList is null");
 				return mutantResult;
 			}
 			if (nodes.size() < 4) {
-				mutantResult.errorText = "mutated model size is less than 3";
+				mutantResult.setErrorText("mutated model size is less than 3");
 				return mutantResult;
 			}
 
-			mutantResult.isSuccess = deleteNode(nodes, correspondenceList, attrConditions, isSourceNode, mutantResult);
+			mutantResult.setSuccess(deleteNode(nodes, correspondenceList, attrConditions, isSourceNode, mutantResult));
 			return mutantResult;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "addMutant_DeleteCorrespondencePattern: " + e.getMessage();
+			mutantResult.setErrorText("addMutant_DeleteCorrespondencePattern: " + e.getMessage());
 			return mutantResult;
 		}
 	}
@@ -497,7 +475,7 @@ public class TGGRuleUtil {
 			return true;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "deleteNode: " + e.getMessage();
+			mutantResult.setErrorText("deleteNode: " + e.getMessage());
 			return false;
 		}
 	}
@@ -517,11 +495,11 @@ public class TGGRuleUtil {
 					return nodeToDelete;
 				}
 			}
-			mutantResult.errorText = "It is not possible to delete a single node so that a model is valid";
+			mutantResult.setErrorText("It is not possible to delete a single node so that a model is valid");
 			return null;
 		} catch (Exception e) {
 			System.out.println(e);
-			mutantResult.errorText = "getNodeToDelete: " + e.getMessage();
+			mutantResult.setErrorText("getNodeToDelete: " + e.getMessage());
 			return null;
 		}
 	}
@@ -618,7 +596,7 @@ public class TGGRuleUtil {
 			boolean isConnected = graph.isConnected();
 			return isConnected;
 		} catch (Exception e) {
-			mutantResult.errorText = "checkIfModelValid: " + e.getMessage();
+			mutantResult.setErrorText("checkIfModelValid: " + e.getMessage());
 			return false;
 		}
 	}
@@ -755,21 +733,21 @@ public class TGGRuleUtil {
 	}
 
 	private void fillCorrMutantResult(MutantResult mutantResult, CorrVariablePattern corrMutantNode) {
-		mutantResult.nodeName = corrMutantNode.getName();
-		mutantResult.nodeType = corrMutantNode.getType().getName();
-		mutantResult.nodeOperator = corrMutantNode.getOp().getValue();
-		mutantResult.nodeSourceName = corrMutantNode.getSource().getName();
-		mutantResult.nodeTargetName = corrMutantNode.getTarget().getName();
+		mutantResult.setNodeName(corrMutantNode.getName());
+		mutantResult.setNodeType(corrMutantNode.getType().getName());
+		mutantResult.setNodeOperator(corrMutantNode.getOp().getValue());
+		mutantResult.setNodeSourceName(corrMutantNode.getSource().getName());
+		mutantResult.setNodeTargetName(corrMutantNode.getTarget().getName());
 	}
 
 	private void fillMutantDeleteResult(MutantResult mutantResult, ObjectVariablePattern mutantNode,
 			List<String> listLinkNames, List<String> listCorrNames, String targetName) {
-		mutantResult.nodeName = mutantNode.getName();
-		mutantResult.nodeType = mutantNode.getType().getName();
-		mutantResult.nodeOperator = mutantNode.getOp().getValue();
+		mutantResult.setNodeName(mutantNode.getName());
+		mutantResult.setNodeType(mutantNode.getType().getName());
+		mutantResult.setNodeOperator(mutantNode.getOp().getValue());
 
-		mutantResult.listLinkNames = listLinkNames;
-		mutantResult.listCorrNames = listCorrNames;
-		mutantResult.nodeTargetName = targetName;
+		mutantResult.setListLinkNames(listLinkNames);
+		mutantResult.setListCorrNames(listCorrNames);
+		mutantResult.setNodeTargetName(targetName);
 	}
 }

@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.TGGRuleUtil;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -84,8 +85,8 @@ public class TGGRuleUtilTest {
 				TripleGraphGrammarFile tggFile = util.loadRule(project.getFile(ruleFile.toString()));
 
 				// Add a mutant
-				boolean isSuccess = util.getMutantRule(tggFile);
-				if (!isSuccess) {
+				MutantResult mutantResult = util.getMutantRule(tggFile);
+				if (mutantResult.isSuccess()) {
 					// skip test
 					//
 				} else {
