@@ -26,6 +26,7 @@ import org.eclipse.debug.internal.core.LaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.gravity.eclipse.io.ExtensionFileVisitor;
 import org.junit.runner.JUnitCore;
@@ -49,7 +50,7 @@ public class MutationTestExecuter {
 
 	private final ILaunchConfiguration launchConfigFile;
 
-	private final Integer iterations;
+	private final Integer testIterations;
 
 	private final Integer timeout;
 
@@ -57,12 +58,14 @@ public class MutationTestExecuter {
 
 	private String projectName;
 
+	private List<Path> tggRuleFiles;
+
 	private Integer iterationCount = 0;
 
 	private Path tggFilePath = null;
 
 	private Path projectPath;
-	
+
 	private MutantResult mutantResult;
 
 	public MutationTestExecuter(MutationTestConfiguration mutationTestConfiguration) {
@@ -74,7 +77,7 @@ public class MutationTestExecuter {
 			Integer timeout) {
 		this.tggProject = tggProject;
 		this.launchConfigFile = launchConfigFile;
-		this.iterations = iterations;
+		this.testIterations = iterations;
 		this.timeout = timeout;
 		this.projectPath = tggProject.getLocation().toFile().toPath();
 
@@ -89,26 +92,42 @@ public class MutationTestExecuter {
 		System.out.println("Wizard config:");
 		System.out.println("project: " + tggProject);
 		System.out.println("launch config: " + launchConfigFile);
-		System.out.println("iterations: " + iterations);
+		System.out.println("iterations: " + testIterations);
 		System.out.println("timeout: " + timeout);
 		System.out.println("-----------------------");
 
-		// TODO calculate possible mutation count so we don't keep on iterating at some
-		// point while no more new mutations are possible
-
 		TestResultCollector.INSTANCE.clearResultDataList();
 
-		executeNextIteration();
+		prepareTggRuleFileList();
+
+		runInitialTests();
+	}
+
+	private void runInitialTests() {
+		mutantResult = new MutantResult();
+		mutantResult.setMutationName("initialRunWithoutMutation");
+
+		System.out.println("Starting build");
+		boolean buildSuccess = buildProject();
+		System.out.println("build success: " + buildSuccess);
+		if (!buildSuccess) {
+			System.out.println("Unable to build project. Aborting tests");
+			return;
+		}
+
+		System.out.println("Starting tests..");
+		DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 	}
 
 	void executeNextIteration() {
+		iterationCount++;
 		restoreOriginalRuleFile();
 
 		try {
 			TGGRuleUtil tggRuleUtil = new TGGRuleUtil(tggProject);
 			TripleGraphGrammarFile tggFile = null;
 
-			tggFilePath = retrieveRandomTggFilePath(tggProject);
+			tggFilePath = retrieveRandomTggFilePath();
 			System.out.println("Mutating file: " + tggFilePath.getFileName());
 
 			tggFile = tggRuleUtil.loadRule(tggProject.getFile(tggFilePath.toString()));
@@ -116,6 +135,10 @@ public class MutationTestExecuter {
 			mutantResult = tggRuleUtil.getMutantRule(tggFile);
 
 			if (mutantResult.isSuccess()) {
+
+				// TODO check if all mutations have been done (mutantresult) --> remove from
+				// list
+
 				createRuleFileBackup();
 
 				// save new tgg data to the original tgg file
@@ -123,17 +146,23 @@ public class MutationTestExecuter {
 				tggFile.eResource().save(Collections.emptyMap());
 
 				// build the project with the new TGG file
-				boolean buildSuccess = buildProject(tggProject);
+				System.out.println("Starting build");
+				boolean buildSuccess = buildProject();
+				System.out.println(buildSuccess);
+				if (!buildSuccess) {
+					System.out.println("Unable to build project. ");
+				}
 
 				System.out.println("Starting tests..");
-//				MutationTestRunListener.getInstance().setTestConfigName(launchConfigFile.getName());
 				DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 
 				// TODO wait for the test launch to finish before retrieving
 
 			} else {
 				// TODO proper handling
-				System.out.println("Unable to mutate any file");
+				System.out.println("Unable to mutate any rule in file");
+				// remove file from list because no mutations were possible
+				tggRuleFiles.remove(tggFilePath);
 			}
 
 		} catch (IOException e) {
@@ -142,27 +171,29 @@ public class MutationTestExecuter {
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
-	private boolean buildProject(IProject tggProject) throws InterruptedException {
-		final Job job = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
-		job.setUser(true);
-		job.schedule();
-		job.join();
+	private boolean buildProject() {
+		try {
+			final Job job = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
+			job.setUser(true);
+			job.schedule();
+			job.join();
 
 //		if (job.getResult().isOK()) {
 //			return true;
 //		} else {
-		// re-try build if failed once
-		Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
-		retryJob.schedule();
-		retryJob.join();
-		return retryJob.getResult().isOK();
+			// re-try build if failed once
+			Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
+			retryJob.schedule();
+			retryJob.join();
+			return retryJob.getResult().isOK();
 //		}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	private void createRuleFileBackup() {
@@ -200,30 +231,37 @@ public class MutationTestExecuter {
 		}
 	}
 
-	private Path retrieveRandomTggFilePath(IProject testProject) throws CoreException {
+	private void prepareTggRuleFileList() {
+		try {
+			ExtensionFileVisitor tggFileVisitor = new ExtensionFileVisitor("tgg");
+			Arrays.stream(JavaCore.create(tggProject).getRawClasspath())
+					.filter(classPathEntry -> classPathEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE)
+					.map(classPathEntry -> tggProject.getFolder(classPathEntry.getPath().removeFirstSegments(1)))
+					.forEach(projectFolder -> {
+						try {
+							projectFolder.accept(tggFileVisitor);
+						} catch (CoreException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					});
 
-		ExtensionFileVisitor tggFileVisitor = new ExtensionFileVisitor("tgg");
-		Arrays.stream(JavaCore.create(testProject).getRawClasspath())
-				.filter(classPathEntry -> classPathEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE)
-				.map(classPathEntry -> testProject.getFolder(classPathEntry.getPath().removeFirstSegments(1)))
-				.forEach(projectFolder -> {
-					try {
-						projectFolder.accept(tggFileVisitor);
-					} catch (CoreException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				});
+			tggRuleFiles = tggFileVisitor.getFiles();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
 
-		int randomIndex = new Random().nextInt(tggFileVisitor.getFiles().size());
-		Path tggFilePath = tggFileVisitor.getFiles().get(randomIndex);
+	private Path retrieveRandomTggFilePath() throws CoreException {
+		int randomIndex = new Random().nextInt(tggRuleFiles.size());
+		Path tggFilePath = tggRuleFiles.get(randomIndex);
 
 		if (tggFilePath.isAbsolute()) {
-			tggFilePath = testProject.getLocation().toFile().toPath().relativize(tggFilePath);
+			tggFilePath = tggProject.getLocation().toFile().toPath().relativize(tggFilePath);
 		}
 
 		if (IbexTGGNature.SCHEMA_FILE.equals(tggFilePath.toString())) {
-			return retrieveRandomTggFilePath(testProject);
+			return retrieveRandomTggFilePath();
 		} else {
 			return tggFilePath;
 		}
@@ -241,7 +279,9 @@ public class MutationTestExecuter {
 	public MutantResult getMutantResult() {
 		return mutantResult;
 	}
-	
-	
+
+	public boolean isFinished() {
+		return iterationCount >= testIterations;
+	}
 
 }
