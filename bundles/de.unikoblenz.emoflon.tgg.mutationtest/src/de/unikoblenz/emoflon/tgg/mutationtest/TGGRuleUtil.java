@@ -65,7 +65,7 @@ public class TGGRuleUtil {
 	public TGGRuleUtil(IProject project) throws IOException, CoreException {
 		resourceSet = new XtextResourceSet();
 		IFile schemaFile = project.getFile(SCHEMA_FILE);
-		Resource schemaResource = resourceSet.createResource(URI.createURI(schemaFile.getFullPath().toString(), false));
+		Resource schemaResource = resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), true));
 		schemaResource.load(schemaFile.getContents(), Collections.emptyMap());
 		EcoreUtil.resolveAll(resourceSet);
 	}
@@ -141,7 +141,7 @@ public class TGGRuleUtil {
 			}
 			return mutantResult;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -207,7 +207,7 @@ public class TGGRuleUtil {
 			mutantResult.setSuccess(true);
 			return mutantResult;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("addAMutant_AddPattern: " + e.getMessage());
 			return mutantResult;
 		}
@@ -244,7 +244,7 @@ public class TGGRuleUtil {
 
 			return node;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("createNode: " + e.getMessage());
 			return null;
 		}
@@ -271,7 +271,7 @@ public class TGGRuleUtil {
 			;
 			return null;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("createLinkEdge: " + e.getMessage());
 			return null;
 		}
@@ -314,6 +314,7 @@ public class TGGRuleUtil {
 
 		try {
 			schema = rule.getSchema();
+			EcoreUtil.resolve(schema, rule.eResource().getResourceSet());
 			corrList = rule.getCorrespondencePatterns();
 			sourceObjects = rule.getSourcePatterns();
 			targetObjects = rule.getTargetPatterns();
@@ -346,7 +347,7 @@ public class TGGRuleUtil {
 
 			return correspondence;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText(e.getMessage());
 			return null;
 		}
@@ -381,7 +382,7 @@ public class TGGRuleUtil {
 			mutantResult.setSuccess(true);
 			return mutantResult;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText(e.getMessage());
 			return mutantResult;
 		}
@@ -421,7 +422,7 @@ public class TGGRuleUtil {
 			mutantResult.setSuccess(deleteNode(nodes, correspondenceList, attrConditions, isSourceNode, mutantResult));
 			return mutantResult;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("addMutant_DeleteCorrespondencePattern: " + e.getMessage());
 			return mutantResult;
 		}
@@ -474,7 +475,7 @@ public class TGGRuleUtil {
 
 			return true;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("deleteNode: " + e.getMessage());
 			return false;
 		}
@@ -498,7 +499,7 @@ public class TGGRuleUtil {
 			mutantResult.setErrorText("It is not possible to delete a single node so that a model is valid");
 			return null;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 			mutantResult.setErrorText("getNodeToDelete: " + e.getMessage());
 			return null;
 		}
