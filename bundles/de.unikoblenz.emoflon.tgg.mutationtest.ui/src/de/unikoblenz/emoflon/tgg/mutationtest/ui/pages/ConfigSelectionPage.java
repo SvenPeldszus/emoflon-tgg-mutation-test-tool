@@ -13,6 +13,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -25,7 +26,7 @@ public class ConfigSelectionPage extends WizardPage {
 	public ConfigSelectionPage() {
 		super("Config Selection");
 		setTitle("Config Selection");
-		setDescription("Select a launch config..");
+		setDescription("Select the test launch configuration containing the tests for the selected project.");
 	}
 
 	@Override
@@ -35,10 +36,8 @@ public class ConfigSelectionPage extends WizardPage {
 		container.setLayout(layout);
 		layout.numColumns = 1;
 
-		Label label1 = new Label(container, SWT.NONE);
-		label1.setText("Select a launch config..");
-
 		List configListViewer = new List(container, SWT.BORDER | SWT.SINGLE);
+		configListViewer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 		ILaunchConfigurationType junitPluginTestType = manager

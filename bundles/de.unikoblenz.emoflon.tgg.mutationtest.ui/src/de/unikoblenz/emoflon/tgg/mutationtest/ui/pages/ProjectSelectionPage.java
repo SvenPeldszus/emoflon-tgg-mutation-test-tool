@@ -23,7 +23,7 @@ public class ProjectSelectionPage extends WizardPage {
 	public ProjectSelectionPage() {
 		super("Project Selection");
 		setTitle("Project Selection");
-		setDescription("Select a project to proceed..");
+		setDescription("Select the tgg project that should be tested");
 	}
 
 	@Override
@@ -32,10 +32,9 @@ public class ProjectSelectionPage extends WizardPage {
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 1;
-		Label label1 = new Label(container, SWT.NONE);
-		label1.setText("Select a project..");
 
 		List projectListViewer = new List(container, SWT.BORDER | SWT.SINGLE);
+		projectListViewer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] projects = workspaceRoot.getProjects();
