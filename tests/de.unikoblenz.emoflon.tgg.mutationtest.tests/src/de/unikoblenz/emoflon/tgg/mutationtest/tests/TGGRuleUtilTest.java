@@ -63,7 +63,7 @@ public class TGGRuleUtilTest {
 	 * 
 	 * @throws InitializationError If the initialization of the test case failed
 	 */
-	@Ignore
+	
 	@Test
 	public void loadTGGRuleTest() throws InitializationError {
 		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
@@ -84,31 +84,9 @@ public class TGGRuleUtilTest {
 
 				TripleGraphGrammarFile tggFile = util.loadRule(project.getFile(ruleFile.toString()));
 
-				// Add a mutant
-				MutantResult mutantResult = util.getMutantRule(tggFile);
-				if (mutantResult.isSuccess()) {
-					// skip test
-					//
-				} else {
-					// backup the original tgg file
-					Path fileName = ruleFile.getFileName();
-					Path sourcePath = projectPath.resolve(ruleFile);
-					Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
-					Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-					// save new tgg data to the original tgg file
-					tggFile.eResource().save(Collections.emptyMap());
-
-					// backup the file!!! file.tgg.backup - done
-					// save a rule to a file with the same name - done
-					// run a test
-					// add a value to a report
-					// delete the mutant file
-					// restore backup file.tgg.backup -> file.tgg
-
-				}
-
 				assertNotNull(tggFile);
+				assertFalse(tggFile.getSchema().eIsProxy());
+			
 			}
 		} catch (IOException | CoreException e) {
 			LOGGER.error(e.getMessage(), e);
