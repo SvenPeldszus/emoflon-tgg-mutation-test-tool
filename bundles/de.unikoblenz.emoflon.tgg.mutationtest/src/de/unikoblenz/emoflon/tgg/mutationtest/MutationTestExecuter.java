@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -43,6 +44,8 @@ import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 public class MutationTestExecuter {
 
 	public static MutationTestExecuter INSTANCE;
+
+	private static final Logger LOGGER = Logger.getLogger(MutationTestExecuter.class);
 
 	// test setup variables
 
@@ -166,11 +169,9 @@ public class MutationTestExecuter {
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
@@ -191,7 +192,7 @@ public class MutationTestExecuter {
 			return retryJob.getResult().isOK();
 //		}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			return false;
 		}
 	}
@@ -205,8 +206,7 @@ public class MutationTestExecuter {
 		try {
 			Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			// TODO logger
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
@@ -223,8 +223,7 @@ public class MutationTestExecuter {
 			try {
 				Files.move(backupFilePath, mutatedFilePath, StandardCopyOption.REPLACE_EXISTING);
 			} catch (IOException e) {
-				// TODO logger
-				e.printStackTrace();
+				LOGGER.error(e.getMessage(), e);
 			}
 		} else {
 			System.out.println("Info: Backup file does not exist.");
@@ -241,14 +240,13 @@ public class MutationTestExecuter {
 						try {
 							projectFolder.accept(tggFileVisitor);
 						} catch (CoreException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							LOGGER.error(e.getMessage(), e);
 						}
 					});
 
 			tggRuleFiles = tggFileVisitor.getFiles();
 		} catch (CoreException e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 

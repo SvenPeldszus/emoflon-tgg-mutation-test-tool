@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
+
 import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
 
 public class TestResultCollector {
@@ -14,6 +16,8 @@ public class TestResultCollector {
 	}
 
 	public static TestResultCollector INSTANCE = new TestResultCollector();
+	
+	private static final Logger LOGGER = Logger.getLogger(MutationTestExecuter.class);
 
 	private CsvWriter csvWriter = new CsvWriter();
 
@@ -38,8 +42,7 @@ public class TestResultCollector {
 		try {
 			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject().getName(), resultData);
 		} catch (IOException e) {
-			// TODO logger
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
