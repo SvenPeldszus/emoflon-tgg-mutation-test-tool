@@ -7,34 +7,20 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.stream.Collectors;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.debug.internal.core.LaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.gravity.eclipse.io.ExtensionFileVisitor;
-import org.junit.runner.JUnitCore;
 import org.moflon.core.build.MoflonBuildJob;
-import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
-import org.eclipse.debug.core.model.RuntimeProcess;
-
-import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
+import org.moflon.tgg.mosl.tgg.Rule;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 
@@ -104,7 +90,7 @@ public class MutationTestExecuter {
 	}
 
 	private void runInitialTests() {
-		mutantResult = new MutantResult();
+		mutantResult = new MutantResult(null);
 		mutantResult.setMutationName("initialRunWithoutMutation");
 
 		System.out.println("Starting build");
@@ -125,14 +111,12 @@ public class MutationTestExecuter {
 
 		try {
 			TGGRuleUtil tggRuleUtil = new TGGRuleUtil(tggProject);
-			TripleGraphGrammarFile tggFile = null;
-
 			tggFilePath = retrieveRandomTggFilePath();
 			System.out.println("Mutating file: " + tggFilePath.getFileName());
 
-			tggFile = tggRuleUtil.loadRule(tggProject.getFile(tggFilePath.toString()));
+			List<Rule> rules = tggRuleUtil.loadRules(tggProject.getFile(tggFilePath.toString()));
 
-			mutantResult = tggRuleUtil.getMutantRule(tggFile);
+			mutantResult = tggRuleUtil.getMutantRule(rules);
 
 			if (mutantResult.isSuccess()) {
 
@@ -143,7 +127,7 @@ public class MutationTestExecuter {
 
 				// save new tgg data to the original tgg file
 				System.out.println("Saving file");
-				tggFile.eResource().save(Collections.emptyMap());
+				mutantResult.getMutantRule().eResource().save(Collections.emptyMap());
 
 				// build the project with the new TGG file
 				System.out.println("Starting build");

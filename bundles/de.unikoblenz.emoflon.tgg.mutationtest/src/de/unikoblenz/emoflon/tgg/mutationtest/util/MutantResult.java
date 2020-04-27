@@ -2,6 +2,8 @@ package de.unikoblenz.emoflon.tgg.mutationtest.util;
 
 import java.util.List;
 
+import org.moflon.tgg.mosl.tgg.Rule;
+
 public class MutantResult {
 	String mutationName;
 	boolean success;
@@ -15,6 +17,11 @@ public class MutantResult {
 	List<String> listCorrNames;
 
 	String errorText;
+	private Rule mutantRule;
+
+	public MutantResult(Rule rule) {
+		this.mutantRule = rule;
+	}
 
 	public String getMutationName() {
 		return mutationName;
@@ -94,6 +101,15 @@ public class MutantResult {
 
 	public void setErrorText(String errorText) {
 		this.errorText = errorText;
+	}
+
+	/**
+	 * A getter for the mutated rule
+	 *  
+	 * @return the mutantRule The rule
+	 */
+	public Rule getMutantRule() {
+		return mutantRule;
 	}
 	
 	

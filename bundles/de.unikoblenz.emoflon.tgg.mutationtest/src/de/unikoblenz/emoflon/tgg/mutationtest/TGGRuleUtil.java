@@ -1,9 +1,9 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.lang.Math;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -25,6 +24,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.tgg.mosl.tgg.AttrCond;
 import org.moflon.tgg.mosl.tgg.AttributeExpression;
@@ -54,6 +54,7 @@ public class TGGRuleUtil {
 	private static final String SCHEMA_FILE = IbexTGGNature.SCHEMA_FILE;
 	private XtextResourceSet resourceSet;
 	private final String DEFAULT_OPERATOR = "++";
+	private Resource schemaResource;
 
 	/**
 	 * Creates a new rule util for the given TGG project
@@ -65,9 +66,32 @@ public class TGGRuleUtil {
 	public TGGRuleUtil(IProject project) throws IOException, CoreException {
 		resourceSet = new XtextResourceSet();
 		IFile schemaFile = project.getFile(SCHEMA_FILE);
-		Resource schemaResource = resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), true));
+		schemaResource = resourceSet
+				.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), true));
 		schemaResource.load(schemaFile.getContents(), Collections.emptyMap());
 		EcoreUtil.resolveAll(resourceSet);
+	}
+
+	/**
+	 * Loads the TGG rule from the given files
+	 * 
+	 * @param file A file
+	 * @return The loaded rule
+	 * @throws IOException   If reading the serialized rule failed
+	 * @throws CoreException if this method fails. The status code associated with
+	 *                       exception reflects the cause of the failure.
+	 */
+	public List<Rule> loadRules(Collection<IFile> files) throws IOException, CoreException {
+		List<Rule> rules = new LinkedList<>();
+		for (IFile file : files) {
+			Resource ruleResource = resourceSet
+					.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
+			rules.addAll(((TripleGraphGrammarFile) ruleResource.getContents().get(0)).getRules());
+		}
+		EcoreUtil2.resolveLazyCrossReferences(schemaResource, () -> false);
+		resourceSet.getResources().forEach(r -> EcoreUtil2.resolveLazyCrossReferences(r, () -> false));
+		EcoreUtil.resolveAll(resourceSet);
+		return rules;
 	}
 
 	/**
@@ -79,25 +103,18 @@ public class TGGRuleUtil {
 	 * @throws CoreException if this method fails. The status code associated with
 	 *                       exception reflects the cause of the failure.
 	 */
-	public TripleGraphGrammarFile loadRule(IFile file) throws IOException, CoreException {
+	public List<Rule> loadRules(IFile file) throws IOException, CoreException {
 		Resource ruleResource = resourceSet
 				.getResource(URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
-		try (InputStream fileContent = file.getContents()) {
-			ruleResource.load(fileContent, Collections.emptyMap());
-			EcoreUtil.resolveAll(resourceSet);
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-		return (TripleGraphGrammarFile) ruleResource.getContents().get(0);
+		EcoreUtil2.resolveLazyCrossReferences(schemaResource, () -> false);
+		resourceSet.getResources().forEach(r -> EcoreUtil2.resolveLazyCrossReferences(r, () -> false));
+		EcoreUtil.resolveAll(resourceSet);
+		return ((TripleGraphGrammarFile) ruleResource.getContents().get(0)).getRules();
 	}
 
-
-
-	public MutantResult getMutantRule(TripleGraphGrammarFile tggFile) {
+	public MutantResult getMutantRule(List<Rule> rules) {
 		try {
-			List<Rule> rules = tggFile.getRules();
-
-			if (rules == null || rules.size() == 0) {
+			if (rules == null || !rules.isEmpty()) {
 				return null;
 			}
 
@@ -137,7 +154,7 @@ public class TGGRuleUtil {
 				default:
 					mutantResult = null;
 				}
-				
+
 			}
 			return mutantResult;
 		} catch (Exception e) {
@@ -163,7 +180,7 @@ public class TGGRuleUtil {
 		ObjectVariablePattern newNode;
 		Schema schema;
 
-		MutantResult mutantResult = new MutantResult();
+		MutantResult mutantResult = new MutantResult(rule);
 		mutantResult.setMutationName(isSourceNode ? "AddourcePattern" : "AddTargetPattern");
 
 		try {
@@ -287,7 +304,7 @@ public class TGGRuleUtil {
 	 */
 	public MutantResult addAMutant_AddCorrespondence(Rule rule) throws CoreException {
 		List<CorrVariablePattern> corrObjects = rule.getCorrespondencePatterns();
-		MutantResult mutantResult = new MutantResult();
+		MutantResult mutantResult = new MutantResult(rule);
 		mutantResult.setMutationName("AddCorrespondence");
 
 		if (corrObjects == null) {
@@ -364,7 +381,7 @@ public class TGGRuleUtil {
 	 *                       exception reflects the cause of the failure.
 	 */
 	public MutantResult addMutant_DeleteCorrespondencePattern(Rule rule) throws CoreException {
-		MutantResult mutantResult = new MutantResult();
+		MutantResult mutantResult = new MutantResult(rule);
 		mutantResult.setMutationName("DeleteCorrespondencePattern");
 
 		try {
@@ -402,7 +419,7 @@ public class TGGRuleUtil {
 		List<CorrVariablePattern> correspondenceList;
 		List<AttrCond> attrConditions;
 
-		MutantResult mutantResult = new MutantResult();
+		MutantResult mutantResult = new MutantResult(rule);
 		mutantResult.setMutationName(isSourceNode ? "DeleteSourcePattern" : "DeleteTargetPattern");
 
 		try {
@@ -750,5 +767,9 @@ public class TGGRuleUtil {
 		mutantResult.setListLinkNames(listLinkNames);
 		mutantResult.setListCorrNames(listCorrNames);
 		mutantResult.setNodeTargetName(targetName);
+	}
+
+	public Schema getSchema() {
+		return (Schema) ((TripleGraphGrammarFile) schemaResource.getContents().get(0)).getSchema();
 	}
 }

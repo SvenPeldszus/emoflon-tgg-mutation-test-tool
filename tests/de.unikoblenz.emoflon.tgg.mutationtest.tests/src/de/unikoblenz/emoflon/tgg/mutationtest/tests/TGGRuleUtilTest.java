@@ -9,14 +9,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.TGGRuleUtil;
-import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +33,6 @@ import org.gravity.eclipse.io.GitCloneException;
 import org.gravity.eclipse.io.GitTools;
 import org.gravity.eclipse.util.EclipseProjectUtil;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.model.InitializationError;
 import org.moflon.tgg.mosl.TGGStandaloneSetup;
@@ -63,7 +60,7 @@ public class TGGRuleUtilTest {
 	 * 
 	 * @throws InitializationError If the initialization of the test case failed
 	 */
-	
+
 	@Test
 	public void loadTGGRuleTest() throws InitializationError {
 		IProject project = checkoutAndGetTGGProject("https://github.com/eMoflon/emoflon-ibex-examples.git",
@@ -72,6 +69,10 @@ public class TGGRuleUtilTest {
 		Path projectPath = project.getLocation().toFile().toPath();
 		try {
 			TGGRuleUtil util = new TGGRuleUtil(project);
+			Schema schema = util.getSchema();
+			assertNotNull(schema);
+			assertFalse(schema.eIsProxy());
+
 			ExtensionFileVisitor visitor = new ExtensionFileVisitor("tgg");
 			project.accept(visitor);
 			for (Path ruleFile : visitor.getFiles()) {
@@ -82,11 +83,16 @@ public class TGGRuleUtilTest {
 					continue;
 				}
 
-				TripleGraphGrammarFile tggFile = util.loadRule(project.getFile(ruleFile.toString()));
+				System.out.println("Loaded rule: " + ruleFile);
 
-				assertNotNull(tggFile);
-				assertFalse(tggFile.getSchema().eIsProxy());
-			
+				Collection<Rule> rules = util.loadRules(project.getFile(ruleFile.toString()));
+				
+				for (Rule rule : rules) {
+					Schema referencedSchema = rule.getSchema();
+					assertEquals(schema, referencedSchema);
+					assertFalse(referencedSchema.eIsProxy());
+				}
+				System.out.println("Successfully loaded rule: " + ruleFile);
 			}
 		} catch (IOException | CoreException e) {
 			LOGGER.error(e.getMessage(), e);
