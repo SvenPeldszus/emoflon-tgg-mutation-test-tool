@@ -36,4 +36,13 @@
             commandId="de.unikoblenz.emoflon.tgg.mutationtest.ui.startwizardcommand">
       </handler>
    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView"
+            id="de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView"
+            name="Mutation Test Result View"
+            restorable="true">
+      </view>
+   </extension>
 </plugin>
