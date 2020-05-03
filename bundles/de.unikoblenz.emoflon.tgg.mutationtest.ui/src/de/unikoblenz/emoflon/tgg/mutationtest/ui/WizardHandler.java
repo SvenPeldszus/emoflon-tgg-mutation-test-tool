@@ -10,10 +10,9 @@ import de.unikoblenz.emoflon.tgg.mutationtest.MutationTestExecuter;
 
 public class WizardHandler extends AbstractHandler {
 
-	private MutationTestSetupWizard mutationTestSetupWizard = new MutationTestSetupWizard();
-
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		MutationTestSetupWizard mutationTestSetupWizard = new MutationTestSetupWizard();
 		WizardDialog wizardDialog = new WizardDialog(null, mutationTestSetupWizard);
 		if (wizardDialog.open() == Window.OK) {
 			MutationTestExecuter mutationTestRunner = new MutationTestExecuter(mutationTestSetupWizard.getMutationTestConfiguration());
