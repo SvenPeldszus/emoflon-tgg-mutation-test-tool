@@ -53,7 +53,7 @@ public class MutationTestExecuter {
 
 	private List<Path> tggRuleFilePaths;
 
-	private Map<Rule, IFile> tggRules;
+	private List<Rule> tggRules;
 
 	private Integer iterationCount = 0;
 
@@ -96,7 +96,8 @@ public class MutationTestExecuter {
 		try {
 			tggRuleUtil = new TGGRuleUtil(tggProject);
 			prepareTggFileList();
-			prepareTggRules();
+//			prepareTggRules();
+			tggRules = tggRuleUtil.loadRules(tggRuleFilePaths);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage(), e);
 		} catch (CoreException e) {
@@ -131,9 +132,7 @@ public class MutationTestExecuter {
 			tggFilePath = retrieveRandomTggFilePath();
 			System.out.println("Mutating file: " + tggFilePath.getFileName());
 
-			List<Rule> rules = tggRuleUtil.loadRules(tggProject.getFile(tggFilePath.toString()));
-
-			mutantResult = tggRuleUtil.getMutantRule(rules);
+			mutantResult = tggRuleUtil.getMutantRule(tggRules);
 
 			if (mutantResult.isSuccess()) {
 
@@ -248,13 +247,13 @@ public class MutationTestExecuter {
 		}
 	}
 
-	private void prepareTggRules() throws IOException, CoreException {
-		for (Path path : tggRuleFilePaths) {
-			IFile ruleFile = tggProject.getFile(path.toString());
-			List<Rule> rules = tggRuleUtil.loadRules(ruleFile);
-			rules.forEach(rule -> tggRules.put(rule, ruleFile));
-		}
-	}
+//	private void prepareTggRules() throws IOException, CoreException {
+//		for (Path path : tggRuleFilePaths) {
+//			IFile ruleFile = tggProject.getFile(path.toString());
+//			List<Rule> rules = tggRuleUtil.loadRules(ruleFile);
+//			rules.forEach(rule -> tggRules.put(rule, ruleFile));
+//		}
+//	}
 
 	private Path retrieveRandomTggFilePath() throws CoreException {
 		int randomIndex = new Random().nextInt(tggRuleFilePaths.size());
