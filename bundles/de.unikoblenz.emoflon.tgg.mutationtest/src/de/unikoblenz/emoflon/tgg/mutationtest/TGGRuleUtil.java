@@ -71,6 +71,10 @@ public class TGGRuleUtil {
 		schemaResource.load(schemaFile.getContents(), Collections.emptyMap());
 		EcoreUtil.resolveAll(resourceSet);
 	}
+	
+	public void unloadResources() {
+		resourceSet.getResources().forEach(r-> r.unload());
+	}
 
 	/**
 	 * Loads the TGG rule from the given files
@@ -119,7 +123,7 @@ public class TGGRuleUtil {
 			}
 
 			Rule rule = rules.get(0);
-
+			
 			Integer[] indexes = new Integer[] { 0, 1, 2, 3, 4, 5 };
 			List<Integer> randomIndexes = Arrays.asList(indexes);
 			Collections.shuffle(randomIndexes);

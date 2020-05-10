@@ -8,7 +8,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -47,7 +50,7 @@ public class MutationTestExecuter {
 
 	private String projectName;
 
-	private List<Path> tggRuleFiles;
+	private List<Path> tggRuleFilePaths;
 
 	private Integer iterationCount = 0;
 
@@ -74,9 +77,9 @@ public class MutationTestExecuter {
 
 		INSTANCE = this;
 	}
-
+	
+	
 	public void executeTests() {
-
 		System.out.println("-----------------------");
 		System.out.println("Wizard config:");
 		System.out.println("project: " + tggProject);
@@ -111,16 +114,20 @@ public class MutationTestExecuter {
 	void executeNextIteration() {
 		iterationCount++;
 		restoreOriginalRuleFile();
-
+		
 		try {
+			// get all rules
+			// call tggutil with all rules
 			TGGRuleUtil tggRuleUtil = new TGGRuleUtil(tggProject);
 			tggFilePath = retrieveRandomTggFilePath();
+			
 			System.out.println("Mutating file: " + tggFilePath.getFileName());
 
-			List<Rule> rules = tggRuleUtil.loadRules(tggProject.getFile(tggFilePath.toString()));
+			List<IFile> tggRuleFiles = tggRuleFilePaths.stream().map(path -> tggProject.getFile(path.toString())).collect(Collectors.toList());
+			List<Rule> rules = tggRuleUtil.loadRules(tggRuleFiles);
 
 			mutantResult = tggRuleUtil.getMutantRule(rules);
-
+			
 			if (mutantResult.isSuccess()) {
 
 				// TODO check if all mutations have been done (mutantresult) --> remove from
@@ -149,7 +156,7 @@ public class MutationTestExecuter {
 				// TODO proper handling
 				System.out.println("Unable to mutate any rule in file");
 				// remove file from list because no mutations were possible
-				tggRuleFiles.remove(tggFilePath);
+				tggRuleFilePaths.remove(tggFilePath);
 			}
 
 		} catch (IOException e) {
@@ -183,6 +190,7 @@ public class MutationTestExecuter {
 
 	private void createRuleFileBackup() {
 		System.out.println("Creating backup");
+//		TODO mutantResult.getMutantRule().eResource().getURI().path()
 		Path fileName = tggFilePath.getFileName();
 		Path sourcePath = projectPath.resolve(tggFilePath);
 		Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
@@ -228,15 +236,15 @@ public class MutationTestExecuter {
 						}
 					});
 
-			tggRuleFiles = tggFileVisitor.getFiles();
+			tggRuleFilePaths = tggFileVisitor.getFiles();
 		} catch (CoreException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
 	private Path retrieveRandomTggFilePath() throws CoreException {
-		int randomIndex = new Random().nextInt(tggRuleFiles.size());
-		Path tggFilePath = tggRuleFiles.get(randomIndex);
+		int randomIndex = new Random().nextInt(tggRuleFilePaths.size());
+		Path tggFilePath = tggRuleFilePaths.get(randomIndex);
 
 		if (tggFilePath.isAbsolute()) {
 			tggFilePath = tggProject.getLocation().toFile().toPath().relativize(tggFilePath);
