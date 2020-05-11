@@ -57,7 +57,6 @@ public class TestResultCollector {
 	}
 
 	private String[] createResultDataArray(String mutationName, String testMethod, String testResult) {
-		// TODO Auto-generated method stub
 		return new String[] { mutationName, testMethod, testResult };
 	}
 
@@ -65,4 +64,7 @@ public class TestResultCollector {
 		resultData.clear();
 	}
 
+	public List<String[]> getResultData() {
+		return resultData;
+	}
 }
