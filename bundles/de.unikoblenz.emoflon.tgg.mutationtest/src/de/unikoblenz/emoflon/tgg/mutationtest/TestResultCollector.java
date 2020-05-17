@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
 
 public class TestResultCollector {
@@ -33,8 +34,17 @@ public class TestResultCollector {
 
 		if (MutationTestExecuter.INSTANCE.isFinished()) {
 			writeCsvFile();
+			openResultView();
 		} else {
 			MutationTestExecuter.INSTANCE.executeNextIteration();
+		}
+	}
+
+	private void openResultView() {
+		try {
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+		} catch (PartInitException e) {
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
@@ -47,7 +57,6 @@ public class TestResultCollector {
 	}
 
 	private String[] createResultDataArray(String mutationName, String testMethod, String testResult) {
-		// TODO Auto-generated method stub
 		return new String[] { mutationName, testMethod, testResult };
 	}
 
@@ -55,4 +64,7 @@ public class TestResultCollector {
 		resultData.clear();
 	}
 
+	public List<String[]> getResultData() {
+		return resultData;
+	}
 }
