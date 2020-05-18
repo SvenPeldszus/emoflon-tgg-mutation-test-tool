@@ -48,15 +48,15 @@ public class MutationTestResultView extends ViewPart {
 		column3.setText("Test result");
 		column3.setWidth(200);
 
-//		List<String[]> resultData = TestResultCollector.INSTANCE.getResultData();
-		List<String[]> resultData = Arrays.asList(
-				new String[] { "AddourcePattern", "[41: Forward Transformation From Src: InnerClassInConstructor]",
-						"Error" },
-				new String[] { "AddourcePattern", "[22: Forward Transformation From Src: FieldInAnonClass]", "Error" },
-				new String[] { "myMutation", "[39: Forward Transformation From Src: InnerClassInAnonymousClass]",
-						"OK" },
-				new String[] { "myMutation", "[43: Forward Transformation From Src: InterfaceExtendsInterface]",
-						"OK" });
+		List<String[]> resultData = TestResultCollector.INSTANCE.getResultData();
+//		List<String[]> resultData = Arrays.asList(
+//				new String[] { "AddourcePattern", "[41: Forward Transformation From Src: InnerClassInConstructor]",
+//						"Error" },
+//				new String[] { "AddourcePattern", "[22: Forward Transformation From Src: FieldInAnonClass]", "Error" },
+//				new String[] { "myMutation", "[39: Forward Transformation From Src: InnerClassInAnonymousClass]",
+//						"OK" },
+//				new String[] { "myMutation", "[43: Forward Transformation From Src: InterfaceExtendsInterface]",
+//						"OK" });
 
 		Map<String, List<String[]>> resultAggregation = new HashMap<>();
 		for (String[] data : resultData) {
