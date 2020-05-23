@@ -21,6 +21,7 @@ import de.unikoblenz.emoflon.tgg.mutationtest.TestResultCollector;
 
 public class MutationTestResultView extends ViewPart {
 
+	// map for keeping references for selection events
 	Map<TreeItem, String[]> resultDataMap = new HashMap<>();
 
 	@Override
@@ -35,55 +36,77 @@ public class MutationTestResultView extends ViewPart {
 		Tree tree = new Tree(parent, SWT.BORDER | SWT.FILL);
 		tree.setLayoutData(gridData);
 		tree.setHeaderVisible(true);
-		
-		TreeColumn column1 = new TreeColumn(tree, SWT.CENTER);
-		column1.setText("Mutation description");
-		column1.setWidth(200);
-		
-		TreeColumn column2 = new TreeColumn(tree, SWT.CENTER);
-		column2.setText("Test name");
-		column1.setWidth(500);
-		
-		TreeColumn column3 = new TreeColumn(tree, SWT.CENTER);
-		column3.setText("Test result");
-		column3.setWidth(200);
+
+		TreeColumn ruleNameColumn = new TreeColumn(tree, SWT.CENTER);
+		ruleNameColumn.setText("Rule name");
+		ruleNameColumn.setWidth(200);
+
+		TreeColumn mutationDescriptionColumn = new TreeColumn(tree, SWT.CENTER);
+		mutationDescriptionColumn.setText("Mutation description");
+		mutationDescriptionColumn.setWidth(200);
+
+		TreeColumn aggregatedResultColumn = new TreeColumn(tree, SWT.CENTER);
+		aggregatedResultColumn.setText("detected?");
+		aggregatedResultColumn.setWidth(75);
+
+		TreeColumn testMethodNameColumn = new TreeColumn(tree, SWT.CENTER);
+		testMethodNameColumn.setText("Test method name");
+		testMethodNameColumn.setWidth(400);
+
+		TreeColumn testResultColumn = new TreeColumn(tree, SWT.CENTER);
+		testResultColumn.setText("Test result");
+		testResultColumn.setWidth(75);
 
 //		List<String[]> resultData = TestResultCollector.INSTANCE.getResultData();
 		List<String[]> resultData = Arrays.asList(
-				new String[] { "AddourcePattern", "[41: Forward Transformation From Src: InnerClassInConstructor]",
+				new String[] { "rule1", "AddourcePattern",
+						"[41: Forward Transformation From Src: InnerClassInConstructor]", "Error" },
+				new String[] { "rule1", "AddourcePattern", "[22: Forward Transformation From Src: FieldInAnonClass]",
 						"Error" },
-				new String[] { "AddourcePattern", "[22: Forward Transformation From Src: FieldInAnonClass]", "Error" },
-				new String[] { "myMutation", "[39: Forward Transformation From Src: InnerClassInAnonymousClass]",
-						"OK" },
-				new String[] { "myMutation", "[43: Forward Transformation From Src: InterfaceExtendsInterface]",
-						"OK" });
+				new String[] { "rule1", "myMutation",
+						"[39: Forward Transformation From Src: InnerClassInAnonymousClass]", "OK" },
+				new String[] { "rule2", "myMutation",
+						"[43: Forward Transformation From Src: InterfaceExtendsInterface]", "OK" });
 
-		Map<String, List<String[]>> resultAggregation = new HashMap<>();
+		// TODO proper data structure => data type for result (OK,FAILURE,ERROR)
+		Map<String, Map<String, List<String[]>>> resultAggregation = new HashMap<>();
+
 		for (String[] data : resultData) {
 			resultAggregation.compute(data[0], (key, value) -> {
 				if (value == null) {
-					value = new ArrayList<>();
+					value = new HashMap<>();
 				}
-				value.add(data);
+				value.compute(data[1], (key2, value2) -> {
+					if (value2 == null) {
+						value2 = new ArrayList<>();
+					}
+					value2.add(data);
+					return value2;
+				});
 				return value;
 			});
 		}
 
-		TreeItem root = new TreeItem(tree, SWT.NONE);
+//		TreeItem root = new TreeItem(tree, SWT.NONE);
 
-		resultDataMap.clear();		
-		
-		for(Entry<String, List<String[]>> dataEntry : resultAggregation.entrySet()) {
-			TreeItem iterationItem = new TreeItem(root, SWT.NONE);
-			iterationItem.setText(new String[] { dataEntry.getKey(), "", ""});
-			
-			for(String[] testResultData : dataEntry.getValue()) {
-			TreeItem childItem = new TreeItem(iterationItem, SWT.NONE);
-			childItem.setText(new String[] { "", testResultData[1], testResultData[2] });
-			resultDataMap.put(childItem, testResultData);
+//		resultDataMap.clear();
+
+		// convert data aggregation into tree
+		for (Entry<String, Map<String, List<String[]>>> ruleData : resultAggregation.entrySet()) {
+			TreeItem ruleRootItem = new TreeItem(tree, SWT.NONE);
+			ruleRootItem.setText(new String[] { ruleData.getKey() });
+
+			for (Entry<String, List<String[]>> mutationData : ruleData.getValue().entrySet()) {
+				TreeItem childItem = new TreeItem(ruleRootItem, SWT.NONE);
+				childItem.setText(new String[] { "", mutationData.getKey() });
+
+				for (String[] testResultData : mutationData.getValue()) {
+					TreeItem testResultTreeItem = new TreeItem(childItem, SWT.NONE);
+					testResultTreeItem.setText(new String[] { "", "", "", testResultData[2], testResultData[3] });
+//					resultDataMap.put(childItem, testResultData);
+				}
 			}
 		}
-
 	}
 
 	@Override
