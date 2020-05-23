@@ -46,6 +46,10 @@ public class TGGRuleUtil {
 		schemaResource.load(schemaFile.getContents(), Collections.emptyMap());
 		EcoreUtil.resolveAll(resourceSet);
 	}
+	
+	public void unloadResources() {
+		resourceSet.getResources().forEach(Resource::unload);
+	}
 
 	/**
 	 * Loads the TGG rule from the given files
