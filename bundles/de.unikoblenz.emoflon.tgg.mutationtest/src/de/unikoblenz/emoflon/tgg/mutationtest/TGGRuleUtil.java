@@ -73,7 +73,7 @@ public class TGGRuleUtil {
 	}
 	
 	public void unloadResources() {
-		resourceSet.getResources().forEach(r-> r.unload());
+		resourceSet.getResources().forEach(Resource::unload);
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class TGGRuleUtil {
 
 	public MutantResult getMutantRule(List<Rule> rules) {
 		try {
-			if (rules == null || !rules.isEmpty()) {
+			if (rules == null || rules.isEmpty()) {
 				return null;
 			}
 
