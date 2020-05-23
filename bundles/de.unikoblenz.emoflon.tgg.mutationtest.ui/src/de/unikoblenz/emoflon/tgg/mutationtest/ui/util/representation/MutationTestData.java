@@ -1,51 +1,33 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.ui.util.representation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class MutationTestData {
 	
 	private String mutatedRule;
 	
-	private String mutationRepresentation;
+	private Map<String, TestResult> initialRunResults = new HashMap<>();
 	
-	private String testMethodName; 
-	
-	private TestResult testResult;
+	private List<MutationTestResult> mutationTestResults = new ArrayList<>();
 
 	public String getMutatedRule() {
 		return mutatedRule;
-	}
-
-	public String getMutationRepresentation() {
-		return mutationRepresentation;
-	}
-
-	public String getTestName() {
-		return testMethodName;
-	}
-
-	public TestResult getTestResult() {
-		return testResult;
-	}
+	}	
 	
-	
-	
-	public MutationTestData(String mutatedRule, String mutationRepresentation, String testMethodName,
+	public MutationTestData(String mutatedRuleName, String mutationRepresentation, String testMethodName,
 			TestResult testResult) {
 		super();
-		this.mutatedRule = mutatedRule;
-		this.mutationRepresentation = mutationRepresentation;
-		this.testMethodName = testMethodName;
-		this.testResult = testResult;
+		this.mutatedRule = mutatedRuleName;
 	}
-
-	/**
-	 * Expected CSV Format: 
-	 * mutated rule name, mutation representation, test method name, JUNIT test result (OK/FAILURE/ERROR)
-	 * 
-	 * @param csvData 
-	 * @return
-	 */
-	public static MutationTestData createTestDataFromCSV(String[] csvData) {
-		TestResult testResult = TestResult.mapStringToTestResult(csvData[3]);
-		return new MutationTestData(csvData[0], csvData[1], csvData[2], testResult);
+	
+	public void addInitialTestResult(String testMethodName, TestResult testResult) {
+		initialRunResults.put(testMethodName, testResult);
+	}
+	
+	public void addMutationTestResult(MutationTestResult mutationTestResult) {
+		mutationTestResults.add(mutationTestResult);
 	}
 }
