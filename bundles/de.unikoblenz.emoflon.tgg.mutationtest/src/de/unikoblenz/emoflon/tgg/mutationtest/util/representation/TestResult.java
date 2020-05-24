@@ -1,4 +1,4 @@
-package de.unikoblenz.emoflon.tgg.mutationtest.ui.util.representation;
+package de.unikoblenz.emoflon.tgg.mutationtest.util.representation;
 
 public enum TestResult {
 	OK, FAILURE, ERROR;

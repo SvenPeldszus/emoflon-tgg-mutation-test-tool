@@ -1,4 +1,4 @@
-package de.unikoblenz.emoflon.tgg.mutationtest.ui.util.representation;
+package de.unikoblenz.emoflon.tgg.mutationtest.util.representation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,5 +23,9 @@ public class MutationTestResult {
 
 	public String getMutationName() {
 		return mutationName;
+	}
+
+	public Map<String, MutationUnitTestResult> getUnitTestResults() {
+		return unitTestResults;
 	}
 }

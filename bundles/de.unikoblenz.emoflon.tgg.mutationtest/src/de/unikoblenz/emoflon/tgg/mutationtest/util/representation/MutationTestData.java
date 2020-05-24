@@ -1,4 +1,4 @@
-package de.unikoblenz.emoflon.tgg.mutationtest.ui.util.representation;
+package de.unikoblenz.emoflon.tgg.mutationtest.util.representation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,25 +9,24 @@ public class MutationTestData {
 	
 	private String mutatedRule;
 	
-	private Map<String, TestResult> initialRunResults = new HashMap<>();
-	
 	private List<MutationTestResult> mutationTestResults = new ArrayList<>();
 
 	public String getMutatedRule() {
 		return mutatedRule;
 	}	
 	
-	public MutationTestData(String mutatedRuleName, String mutationRepresentation, String testMethodName,
-			TestResult testResult) {
+	public MutationTestData(String mutatedRuleName) {
 		super();
 		this.mutatedRule = mutatedRuleName;
-	}
-	
-	public void addInitialTestResult(String testMethodName, TestResult testResult) {
-		initialRunResults.put(testMethodName, testResult);
 	}
 	
 	public void addMutationTestResult(MutationTestResult mutationTestResult) {
 		mutationTestResults.add(mutationTestResult);
 	}
+
+	public List<MutationTestResult> getMutationTestResults() {
+		return mutationTestResults;
+	}
+	
+	
 }
