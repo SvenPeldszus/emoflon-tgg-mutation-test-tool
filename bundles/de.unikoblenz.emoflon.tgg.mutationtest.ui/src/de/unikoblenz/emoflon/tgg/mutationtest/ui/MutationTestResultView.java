@@ -136,13 +136,13 @@ public class MutationTestResultView extends ViewPart {
 		mutationTestResult3.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult3.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult3.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.ERROR, TestResult.OK));
-		mutationTestData2.addMutationTestResult(mutationTestResult1);
+		mutationTestData2.addMutationTestResult(mutationTestResult3);
 		
 		MutationTestResult mutationTestResult4 = new MutationTestResult("mutation2");
 		mutationTestResult4.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult4.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult4.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
-		mutationTestData2.addMutationTestResult(mutationTestResult2);
+		mutationTestData2.addMutationTestResult(mutationTestResult4);
 		
 		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData1);
 		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData2);
