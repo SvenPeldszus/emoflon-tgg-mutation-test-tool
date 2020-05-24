@@ -18,6 +18,10 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.TestResultCollector;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestData;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestResult;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationUnitTestResult;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.TestResult;
 
 public class MutationTestResultView extends ViewPart {
 
@@ -57,56 +61,91 @@ public class MutationTestResultView extends ViewPart {
 		testResultColumn.setText("Test result");
 		testResultColumn.setWidth(75);
 
-//		List<String[]> resultData = TestResultCollector.INSTANCE.getResultData();
-		List<String[]> resultData = Arrays.asList(
-				new String[] { "rule1", "AddourcePattern",
-						"[41: Forward Transformation From Src: InnerClassInConstructor]", "Error" },
-				new String[] { "rule1", "AddourcePattern", "[22: Forward Transformation From Src: FieldInAnonClass]",
-						"Error" },
-				new String[] { "rule1", "myMutation",
-						"[39: Forward Transformation From Src: InnerClassInAnonymousClass]", "OK" },
-				new String[] { "rule2", "myMutation",
-						"[43: Forward Transformation From Src: InterfaceExtendsInterface]", "OK" });
+		TreeColumn differentFromInitialColumn = new TreeColumn(tree, SWT.CENTER);
+		differentFromInitialColumn.setText("differs from inital?");
+		differentFromInitialColumn.setWidth(100);
+		
+		setupTestData();
 
-		// TODO proper data structure => data type for result (OK,FAILURE,ERROR)
-		Map<String, Map<String, List<String[]>>> resultAggregation = new HashMap<>();
-
-		for (String[] data : resultData) {
-			resultAggregation.compute(data[0], (key, value) -> {
-				if (value == null) {
-					value = new HashMap<>();
-				}
-				value.compute(data[1], (key2, value2) -> {
-					if (value2 == null) {
-						value2 = new ArrayList<>();
-					}
-					value2.add(data);
-					return value2;
-				});
-				return value;
-			});
+		Map<String, TestResult> initialRunData = TestResultCollector.INSTANCE.getInitialRunData();
+		TreeItem initialRunRootItem = new TreeItem(tree, SWT.NONE);
+		initialRunRootItem.setText(new String[] { "initial run without mutation" });
+		for (Entry<String, TestResult> initialRunResult : initialRunData.entrySet()) {
+			TreeItem childItem = new TreeItem(initialRunRootItem, SWT.NONE);
+			childItem.setText(new String[] { "", "", "", initialRunResult.getKey(),
+					mapTestResultToString(initialRunResult.getValue()), "" });
 		}
 
-//		TreeItem root = new TreeItem(tree, SWT.NONE);
+		List<MutationTestData> mutationTestDataList = TestResultCollector.INSTANCE.getMutationTestDataList();
+		for (MutationTestData mutationTestData : mutationTestDataList) {
+			TreeItem mutationTestRunItem = new TreeItem(tree, SWT.NONE);
+			mutationTestRunItem.setText(new String[] { mutationTestData.getMutatedRule() });
 
-//		resultDataMap.clear();
+			for (MutationTestResult mutationTestResult : mutationTestData.getMutationTestResults()) {
+				TreeItem mutationTestResultItem = new TreeItem(mutationTestRunItem, SWT.NONE);
+				mutationTestResultItem
+						.setText(new String[] { "", mutationTestResult.getMutationName(), "", "", "", "" });
 
-		// convert data aggregation into tree
-		for (Entry<String, Map<String, List<String[]>>> ruleData : resultAggregation.entrySet()) {
-			TreeItem ruleRootItem = new TreeItem(tree, SWT.NONE);
-			ruleRootItem.setText(new String[] { ruleData.getKey() });
-
-			for (Entry<String, List<String[]>> mutationData : ruleData.getValue().entrySet()) {
-				TreeItem childItem = new TreeItem(ruleRootItem, SWT.NONE);
-				childItem.setText(new String[] { "", mutationData.getKey() });
-
-				for (String[] testResultData : mutationData.getValue()) {
-					TreeItem testResultTreeItem = new TreeItem(childItem, SWT.NONE);
-					testResultTreeItem.setText(new String[] { "", "", "", testResultData[2], testResultData[3] });
-//					resultDataMap.put(childItem, testResultData);
+				for (Entry<String, MutationUnitTestResult> testResultEntry : mutationTestResult.getUnitTestResults()
+						.entrySet()) {
+					TreeItem unitTestResultItem = new TreeItem(mutationTestResultItem, SWT.NONE);
+					unitTestResultItem.setText(new String[] { "", "", "", testResultEntry.getKey(),
+							mapTestResultToString(testResultEntry.getValue().getTestResult()),
+							String.valueOf(testResultEntry.getValue().isDifferentFromInitial()) });
 				}
 			}
 		}
+	}
+
+	private String mapTestResultToString(TestResult testResult) {
+		switch (testResult) {
+		case OK:
+			return "OK";
+		case FAILURE:
+			return "Failure";
+		case ERROR:
+			return "Error";
+		default:
+			return "unknown result";
+		}
+	}
+	
+	private void setupTestData() {
+		TestResultCollector.INSTANCE.clearResultDataList();
+		TestResultCollector.INSTANCE.getInitialRunData().put("method1", TestResult.OK);
+		TestResultCollector.INSTANCE.getInitialRunData().put("method2", TestResult.OK);
+		TestResultCollector.INSTANCE.getInitialRunData().put("method3", TestResult.OK);
+		
+		MutationTestData mutationTestData1 = new MutationTestData("rule1");
+		
+		MutationTestResult mutationTestResult1 = new MutationTestResult("mutation1");
+		mutationTestResult1.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.FAILURE, TestResult.OK));
+		mutationTestResult1.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult1.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.ERROR, TestResult.OK));
+		mutationTestData1.addMutationTestResult(mutationTestResult1);
+		
+		MutationTestResult mutationTestResult2 = new MutationTestResult("mutation2");
+		mutationTestResult2.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult2.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult2.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.FAILURE, TestResult.OK));
+		mutationTestData1.addMutationTestResult(mutationTestResult2);
+		
+		MutationTestData mutationTestData2 = new MutationTestData("rule2");
+		
+		MutationTestResult mutationTestResult3 = new MutationTestResult("mutation1");
+		mutationTestResult3.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult3.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult3.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.ERROR, TestResult.OK));
+		mutationTestData2.addMutationTestResult(mutationTestResult1);
+		
+		MutationTestResult mutationTestResult4 = new MutationTestResult("mutation2");
+		mutationTestResult4.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult4.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestResult4.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
+		mutationTestData2.addMutationTestResult(mutationTestResult2);
+		
+		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData1);
+		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData2);
 	}
 
 	@Override
