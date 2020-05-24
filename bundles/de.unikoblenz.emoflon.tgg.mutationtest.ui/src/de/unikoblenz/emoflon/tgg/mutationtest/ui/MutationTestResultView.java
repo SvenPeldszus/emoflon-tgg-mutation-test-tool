@@ -64,7 +64,7 @@ public class MutationTestResultView extends ViewPart {
 		TreeColumn differentFromInitialColumn = new TreeColumn(tree, SWT.CENTER);
 		differentFromInitialColumn.setText("differs from inital?");
 		differentFromInitialColumn.setWidth(100);
-		
+
 		setupTestData();
 
 		Map<String, TestResult> initialRunData = TestResultCollector.INSTANCE.getInitialRunData();
@@ -79,12 +79,13 @@ public class MutationTestResultView extends ViewPart {
 		List<MutationTestData> mutationTestDataList = TestResultCollector.INSTANCE.getMutationTestDataList();
 		for (MutationTestData mutationTestData : mutationTestDataList) {
 			TreeItem mutationTestRunItem = new TreeItem(tree, SWT.NONE);
-			mutationTestRunItem.setText(new String[] { mutationTestData.getMutatedRule() });
+			mutationTestRunItem.setText(new String[] { mutationTestData.getMutatedRule(), "",
+					String.valueOf(mutationTestData.isMutationDetected()) });
 
 			for (MutationTestResult mutationTestResult : mutationTestData.getMutationTestResults()) {
 				TreeItem mutationTestResultItem = new TreeItem(mutationTestRunItem, SWT.NONE);
-				mutationTestResultItem
-						.setText(new String[] { "", mutationTestResult.getMutationName(), "", "", "", "" });
+				mutationTestResultItem.setText(new String[] { "", mutationTestResult.getMutationName(),
+						String.valueOf(mutationTestResult.isMutationDetected()), "", "", "" });
 
 				for (Entry<String, MutationUnitTestResult> testResultEntry : mutationTestResult.getUnitTestResults()
 						.entrySet()) {
@@ -109,41 +110,41 @@ public class MutationTestResultView extends ViewPart {
 			return "unknown result";
 		}
 	}
-	
+
 	private void setupTestData() {
 		TestResultCollector.INSTANCE.clearResultDataList();
 		TestResultCollector.INSTANCE.getInitialRunData().put("method1", TestResult.OK);
 		TestResultCollector.INSTANCE.getInitialRunData().put("method2", TestResult.OK);
 		TestResultCollector.INSTANCE.getInitialRunData().put("method3", TestResult.OK);
-		
+
 		MutationTestData mutationTestData1 = new MutationTestData("rule1");
-		
+
 		MutationTestResult mutationTestResult1 = new MutationTestResult("mutation1");
 		mutationTestResult1.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.FAILURE, TestResult.OK));
 		mutationTestResult1.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult1.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.ERROR, TestResult.OK));
 		mutationTestData1.addMutationTestResult(mutationTestResult1);
-		
+
 		MutationTestResult mutationTestResult2 = new MutationTestResult("mutation2");
 		mutationTestResult2.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult2.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult2.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.FAILURE, TestResult.OK));
 		mutationTestData1.addMutationTestResult(mutationTestResult2);
-		
+
 		MutationTestData mutationTestData2 = new MutationTestData("rule2");
-		
+
 		MutationTestResult mutationTestResult3 = new MutationTestResult("mutation1");
 		mutationTestResult3.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult3.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult3.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.ERROR, TestResult.OK));
 		mutationTestData2.addMutationTestResult(mutationTestResult3);
-		
-		MutationTestResult mutationTestResult4 = new MutationTestResult("mutation2");
+
+		MutationTestResult mutationTestResult4 = new MutationTestResult("mutation3");
 		mutationTestResult4.addUnitTestResult("method1", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult4.addUnitTestResult("method2", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestResult4.addUnitTestResult("method3", new MutationUnitTestResult(TestResult.OK, TestResult.OK));
 		mutationTestData2.addMutationTestResult(mutationTestResult4);
-		
+
 		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData1);
 		TestResultCollector.INSTANCE.getMutationTestDataList().add(mutationTestData2);
 	}

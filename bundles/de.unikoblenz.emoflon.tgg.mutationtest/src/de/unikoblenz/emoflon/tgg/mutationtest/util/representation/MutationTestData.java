@@ -28,5 +28,8 @@ public class MutationTestData {
 		return mutationTestResults;
 	}
 	
+	public boolean isMutationDetected() {
+		return mutationTestResults.stream().allMatch(MutationTestResult::isMutationDetected);
+	}
 	
 }

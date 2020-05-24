@@ -18,7 +18,7 @@ public class MutationTestResult {
 	}
 
 	public boolean isMutationDetected() {
-		return unitTestResults.values().stream().noneMatch(MutationUnitTestResult::isDifferentFromInitial);
+		return unitTestResults.values().stream().anyMatch(MutationUnitTestResult::isDifferentFromInitial);
 	}
 
 	public String getMutationName() {
