@@ -57,6 +57,8 @@ public class MutationTestExecuter {
 	private Path projectPath;
 
 	private MutantResult mutantResult;
+	
+	private TGGMutantRuleUtil mutantRuleUtil;
 
 	private TGGRuleUtil tggRuleUtil;
 
@@ -91,6 +93,12 @@ public class MutationTestExecuter {
 
 		prepareTggRuleFileList();
 
+		try {
+			mutantRuleUtil = new TGGMutantRuleUtil();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		
 		runInitialTests();
 	}
 
@@ -120,7 +128,7 @@ public class MutationTestExecuter {
 
 			List<Rule> rules = tggRuleUtil.loadRules(tggRuleFiles);
 
-			mutantResult = tggRuleUtil.getMutantRule(rules);
+			mutantResult = mutantRuleUtil.getMutantRule(rules);
 
 			if (mutantResult.isSuccess()) {
 
