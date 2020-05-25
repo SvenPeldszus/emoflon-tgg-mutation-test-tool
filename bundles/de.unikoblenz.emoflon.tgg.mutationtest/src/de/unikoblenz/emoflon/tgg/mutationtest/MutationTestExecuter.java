@@ -96,7 +96,7 @@ public class MutationTestExecuter {
 		try {
 			mutantRuleUtil = new TGGMutantRuleUtil();
 		} catch (CoreException e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 		}
 		
 		runInitialTests();
@@ -131,10 +131,6 @@ public class MutationTestExecuter {
 			mutantResult = mutantRuleUtil.getMutantRule(rules);
 
 			if (mutantResult.isSuccess()) {
-
-				// TODO check if all mutations have been done (mutantresult) --> remove from
-				// list
-
 				createRuleFileBackup();
 
 				// save new tgg data to the original tgg file
@@ -207,7 +203,7 @@ public class MutationTestExecuter {
 	}
 
 	void restoreOriginalRuleFile() {
-		if (mutantResult == null || isInitialTestRun()) {
+		if (mutantResult == null || mutantResult.isInitialRun()) {
 			return;
 		}
 		System.out.println("--Restoring file");
@@ -228,9 +224,6 @@ public class MutationTestExecuter {
 		}
 	}
 
-	private boolean isInitialTestRun() {
-		return "initialRunWithoutMutation".equals(mutantResult.getMutationName());
-	}
 
 	private void prepareTggRuleFileList() {
 		List<Path> tggRuleFilePaths = new ArrayList<>();
