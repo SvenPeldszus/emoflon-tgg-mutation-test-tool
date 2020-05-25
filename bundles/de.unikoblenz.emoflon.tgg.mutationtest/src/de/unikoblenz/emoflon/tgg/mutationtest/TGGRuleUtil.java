@@ -15,6 +15,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.tgg.mosl.tgg.Rule;
+import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 
 import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
@@ -89,5 +90,9 @@ public class TGGRuleUtil {
 		resourceSet.getResources().forEach(r -> EcoreUtil2.resolveLazyCrossReferences(r, () -> false));
 		EcoreUtil.resolveAll(resourceSet);
 		return ((TripleGraphGrammarFile) ruleResource.getContents().get(0)).getRules();
+	}
+	
+	public Schema getSchema() {
+		return (Schema) ((TripleGraphGrammarFile) schemaResource.getContents().get(0)).getSchema();
 	}
 }
