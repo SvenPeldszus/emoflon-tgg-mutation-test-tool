@@ -15,6 +15,8 @@ public class MutantResult {
 	String nodeTargetName;
 	List<String> listLinkNames;
 	List<String> listCorrNames;
+	
+	private boolean initialRun;
 
 	String errorText;
 	private Rule mutantRule;
@@ -101,6 +103,15 @@ public class MutantResult {
 
 	public void setErrorText(String errorText) {
 		this.errorText = errorText;
+	}
+	
+
+	public boolean isInitialRun() {
+		return initialRun;
+	}
+
+	public void setInitialRun(boolean initialRun) {
+		this.initialRun = initialRun;
 	}
 
 	/**

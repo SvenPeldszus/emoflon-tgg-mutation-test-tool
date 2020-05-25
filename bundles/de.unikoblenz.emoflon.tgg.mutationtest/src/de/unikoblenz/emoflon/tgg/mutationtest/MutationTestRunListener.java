@@ -25,11 +25,11 @@ public class MutationTestRunListener extends TestRunListener {
 
 	@Override
 	public void sessionLaunched(ITestRunSession session) {
-//		if (testConfigName.equals(session.getTestRunName())) {
-		System.out.println("--------------------------------------My Tests started");
-		System.out.println(session.getTestRunName());
-		System.out.println(session.getLaunchedProject().getProject().getName());
-//		}
+		if (MutationTestExecuter.INSTANCE.getLaunchConfigFile().getName().equals(session.getTestRunName())) {
+			System.out.println("--------------------------------------My Tests started");
+			System.out.println(session.getTestRunName());
+			System.out.println(session.getLaunchedProject().getProject().getName());
+		}
 	}
 
 	@Override

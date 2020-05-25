@@ -96,7 +96,7 @@ public class MutationTestExecuter {
 
 	private void runInitialTests() {
 		mutantResult = new MutantResult(null);
-		mutantResult.setMutationName("initialRunWithoutMutation");
+		mutantResult.setInitialRun(true);
 
 		System.out.println("Starting build");
 		boolean buildSuccess = buildProject();
