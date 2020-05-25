@@ -65,7 +65,7 @@ public class MutationTestResultView extends ViewPart {
 		differentFromInitialColumn.setText("differs from inital?");
 		differentFromInitialColumn.setWidth(100);
 
-		setupTestData();
+//		setupTestData();
 
 		Map<String, TestResult> initialRunData = TestResultCollector.INSTANCE.getInitialRunData();
 		TreeItem initialRunRootItem = new TreeItem(tree, SWT.NONE);
