@@ -87,6 +87,7 @@ public class TGGMutantRuleUtil {
 				if(appliedIndexes == null) { 	
 					// If not, continue working with this rule
 					rule = tempRule;
+					appliedIndexes = new HashSet<Integer>();
 					break;
 				}
 				else {
