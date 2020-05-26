@@ -99,7 +99,8 @@ public class MutationTestExecuter {
 			LOGGER.error(e.getMessage(), e);
 		}
 		
-		runInitialTests();
+//		runInitialTests();
+		executeNextIteration();
 	}
 
 	private void runInitialTests() {
@@ -151,6 +152,8 @@ public class MutationTestExecuter {
 			} else {
 				// TODO proper handling
 				System.out.println("Unable to mutate any rule in file");
+				iterationCount--;
+				executeNextIteration();
 			}
 
 		} catch (IOException e) {
