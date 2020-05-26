@@ -50,6 +50,7 @@ public class TGGMutantRuleUtil {
 	
 	public MutantResult getMutantRule(List<Rule> rules) {
 		Rule rule = null;
+		MutantResult mutantResult = null;
 		String ruleName = "temp rule"; 				
 		
 		try {			
@@ -88,7 +89,7 @@ public class TGGMutantRuleUtil {
 					// If not, continue working with this rule
 					rule = tempRule;
 					appliedIndexes = new HashSet<Integer>();
-					break;
+					// break;
 				}
 				else {
 					// Check if all mutants for the current rule has been already applied
@@ -102,61 +103,63 @@ public class TGGMutantRuleUtil {
 						
 						// And continue working with this rule
 						rule = tempRule;
-						break;
+						// break;
 					}
 				}								
-			}	
-			
-			if (rule == null) {
-				// if no more rules, return new MutantResult with the message:
-				MutantResult mutantResult = new MutantResult(null);
-				mutantResult.setSuccess(true);
-				mutantResult.setErrorText("All possible mutants for all rules in a file have been already checked ");
-				return mutantResult;
-			}
-							
-			// Perform mutations
-			List<Integer> mutantIndexesList = new ArrayList<>(mutantIndexes);
-			Collections.shuffle(mutantIndexesList);
-			MutantResult mutantResult = null;
+								
+				// Perform mutations
+				List<Integer> mutantIndexesList = new ArrayList<>(mutantIndexes);
+				Collections.shuffle(mutantIndexesList);
+				mutantResult = null;
 
-			for (Integer mutantIndex : mutantIndexesList) {
-				// Add index, which will be applied to the list
-				appliedIndexes.add(mutantIndex);
-				
-				switch (mutantIndex) {
-				case 0:
-					// Delete source pattern node
-					mutantResult = addMutant_DeletePattern(rule, true);						
-					break;
-				case 1:
-					// Delete target pattern node
-					mutantResult = addMutant_DeletePattern(rule, false);
-					break;
-				case 2:
-					// Delete correspondence node
-					mutantResult = addMutant_DeleteCorrespondencePattern(rule);
-					break;
-				case 3:
-					// Add source pattern node
-					mutantResult = addAMutant_AddPattern(rule, true);
-					break;
-				case 4:
-					// Add target pattern node
-					mutantResult = addAMutant_AddPattern(rule, false);
-					break;
-				case 5:
-					// Add correspondence node
-					mutantResult = addAMutant_AddCorrespondence(rule);
-					break;
-				default:
-					mutantResult = null;
+				// Loop possible mutants for a single rule
+				for (Integer mutantIndex : mutantIndexesList) {
+					// Add index, which will be applied to the list
+					appliedIndexes.add(mutantIndex);
+					
+					switch (mutantIndex) {
+					case 0:
+						// Delete source pattern node
+						mutantResult = addMutant_DeletePattern(rule, true);						
+						break;
+					case 1:
+						// Delete target pattern node
+						mutantResult = addMutant_DeletePattern(rule, false);
+						break;
+					case 2:
+						// Delete correspondence node
+						mutantResult = addMutant_DeleteCorrespondencePattern(rule);
+						break;
+					case 3:
+						// Add source pattern node
+						mutantResult = addAMutant_AddPattern(rule, true);
+						break;
+					case 4:
+						// Add target pattern node
+						mutantResult = addAMutant_AddPattern(rule, false);
+						break;
+					case 5:
+						// Add correspondence node
+						mutantResult = addAMutant_AddCorrespondence(rule);
+						break;
+					default:
+						mutantResult = null;
+					}
+					if (mutantResult.isSuccess()) {
+						// Save appliedIndexes to HashMap
+						appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);			
+						
+						return mutantResult;
+					}
 				}
+				// Save appliedIndexes to HashMap
+				appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);			
 			}
-			// To-Do: Save appliedIndexes to HashMap
-			appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);			
-			
+			mutantResult = new MutantResult(null);
+			mutantResult.setSuccess(false);
+			mutantResult.setErrorText("All possible mutants for all rules in a file have been already checked ");
 			return mutantResult;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -181,16 +184,18 @@ public class TGGMutantRuleUtil {
 		Schema schema;
 
 		MutantResult mutantResult = new MutantResult(rule);
-		mutantResult.setMutationName(isSourceNode ? "AddourcePattern" : "AddTargetPattern");
+		mutantResult.setMutationName(isSourceNode ? "AddSourcePattern" : "AddTargetPattern");
 
 		try {
 			schema = rule.getSchema();
 			if (schema == null) {
+				mutantResult.setErrorText("schema is null");
 				return mutantResult;
 			}
 
 			nodes = isSourceNode ? rule.getSourcePatterns() : rule.getTargetPatterns();
 			if (nodes == null || nodes.size() == 0) {
+				mutantResult.setErrorText("SourcePatterns or TargetPatterns are null");
 				return mutantResult;
 			}
 
@@ -218,10 +223,11 @@ public class TGGMutantRuleUtil {
 
 				List<String> listLinkNames = new ArrayList<String>();
 				listLinkNames.add(link.getType().getName());
+				
+				mutantResult.setSuccess(true);
 				fillMutantDeleteResult(mutantResult, newNode, listLinkNames, null, targetObject.getName());
 			}
-
-			mutantResult.setSuccess(true);
+			
 			return mutantResult;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -308,6 +314,7 @@ public class TGGMutantRuleUtil {
 		mutantResult.setMutationName("AddCorrespondence");
 
 		if (corrObjects == null) {
+			mutantResult.setErrorText("CorrespondencePatterns are null");
 			return mutantResult;
 		}
 
@@ -337,8 +344,11 @@ public class TGGMutantRuleUtil {
 			targetObjects = rule.getTargetPatterns();
 
 			if (schema == null || corrList == null || sourceObjects == null || targetObjects == null
-					|| sourceObjects.size() == 0 || targetObjects.size() == 0)
+					|| sourceObjects.size() == 0 || targetObjects.size() == 0) {
+				mutantResult.setErrorText("schema, CorrespondencePatterns, SourcePatterns or TargetPatterns is null");
 				return null;
+			}
+				
 
 			// Get type
 			List<CorrType> corrTypes = schema.getCorrespondenceTypes();
@@ -365,7 +375,7 @@ public class TGGMutantRuleUtil {
 			return correspondence;
 		} catch (Exception e) {
 			e.printStackTrace();
-			mutantResult.setErrorText(e.getMessage());
+			mutantResult.setErrorText("createCorrespondenceNode: " + e.getMessage());
 			return null;
 		}
 	}
@@ -388,6 +398,7 @@ public class TGGMutantRuleUtil {
 			EList<CorrVariablePattern> corrPatterns = rule.getCorrespondencePatterns();
 
 			if (corrPatterns == null || corrPatterns.size() == 0) {
+				mutantResult.setErrorText("SourcePatterns or TargetPatterns is null");
 				return mutantResult;
 			}
 
