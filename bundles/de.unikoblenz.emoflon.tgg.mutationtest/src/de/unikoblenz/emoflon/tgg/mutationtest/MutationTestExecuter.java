@@ -57,7 +57,7 @@ public class MutationTestExecuter {
 	private Path projectPath;
 
 	private MutantResult mutantResult;
-	
+
 	private TGGMutantRuleUtil mutantRuleUtil;
 
 	private TGGRuleUtil tggRuleUtil;
@@ -98,7 +98,7 @@ public class MutationTestExecuter {
 		} catch (CoreException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
-		
+
 //		runInitialTests();
 		executeNextIteration();
 	}
@@ -121,8 +121,7 @@ public class MutationTestExecuter {
 
 	void executeNextIteration() {
 		iterationCount++;
-		restoreOriginalRuleFile();
-
+		
 		try {
 			unloadTggRuleUtilResources();
 			tggRuleUtil = new TGGRuleUtil(tggProject);
@@ -160,6 +159,8 @@ public class MutationTestExecuter {
 			LOGGER.error(e.getMessage(), e);
 		} catch (CoreException e) {
 			LOGGER.error(e.getMessage(), e);
+		} finally {
+			restoreOriginalRuleFile();
 		}
 	}
 
@@ -193,8 +194,8 @@ public class MutationTestExecuter {
 
 	private void createRuleFileBackup() {
 		System.out.println("Creating backup");
-		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().path());
-		Path sourcePath = projectPath.resolve(filePath);
+		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().toPlatformString(true));
+		Path sourcePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
 		Path fileName = filePath.getFileName();
 		Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
 		System.out.println(sourcePath);
@@ -213,7 +214,7 @@ public class MutationTestExecuter {
 
 		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().path());
 		Path fileName = filePath.getFileName();
-		Path mutatedFilePath = projectPath.resolve(filePath);
+		Path mutatedFilePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
 		Path backupFilePath = mutatedFilePath.resolveSibling(fileName + ".backup");
 
 		if (backupFilePath.toFile().exists()) {
@@ -226,7 +227,6 @@ public class MutationTestExecuter {
 			System.out.println("Info: Backup file does not exist.");
 		}
 	}
-
 
 	private void prepareTggRuleFileList() {
 		List<Path> tggRuleFilePaths = new ArrayList<>();
@@ -247,11 +247,9 @@ public class MutationTestExecuter {
 		} catch (CoreException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
-		
-		tggRuleFiles = tggRuleFilePaths.stream()
-		.map(this::relativizeFilePath)
-		.map(path -> tggProject.getFile(path.toString()))
-		.collect(Collectors.toList());
+
+		tggRuleFiles = tggRuleFilePaths.stream().map(this::relativizeFilePath)
+				.map(path -> tggProject.getFile(path.toString())).collect(Collectors.toList());
 	}
 
 	private Path relativizeFilePath(Path tggFilePath) {
