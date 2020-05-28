@@ -99,8 +99,7 @@ public class MutationTestExecuter {
 			LOGGER.error(e.getMessage(), e);
 		}
 
-//		runInitialTests();
-		executeNextIteration();
+		runInitialTests();
 	}
 
 	private void runInitialTests() {
