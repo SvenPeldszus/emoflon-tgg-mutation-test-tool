@@ -98,8 +98,9 @@ public class TestResultCollector {
 
 	private void openResultView() {
 		try {
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+//			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+//					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+			PlatformUI.getWorkbench().getWorkbenchWindows()[0].getPages()[0].showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
 		} catch (PartInitException e) {
 			LOGGER.error(e.getMessage(), e);
 		}

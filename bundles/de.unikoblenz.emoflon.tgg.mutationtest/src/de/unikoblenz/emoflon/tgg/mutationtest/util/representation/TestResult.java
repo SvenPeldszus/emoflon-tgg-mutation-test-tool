@@ -1,7 +1,7 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util.representation;
 
 public enum TestResult {
-	OK, FAILURE, ERROR;
+	OK, FAILURE, ERROR, UNDEFINED;
 
 	public static TestResult mapStringToTestResult(String s) {
 		if (s.equalsIgnoreCase("ok")) {
@@ -12,6 +12,9 @@ public enum TestResult {
 		}
 		if (s.equalsIgnoreCase("error")) {
 			return ERROR;
+		}
+		if (s.equalsIgnoreCase("undefined")) {
+			return UNDEFINED;
 		}
 		throw new IllegalArgumentException("Invalid input");
 	}
