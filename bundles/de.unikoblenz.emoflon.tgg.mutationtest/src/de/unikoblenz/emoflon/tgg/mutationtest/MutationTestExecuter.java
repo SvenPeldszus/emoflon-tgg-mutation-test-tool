@@ -46,6 +46,10 @@ public class MutationTestExecuter {
 
 	private final Integer timeout;
 
+	private final Boolean skipInitialTests;
+
+	private final Boolean createCsvOutput;
+
 	// runtime helper variables
 
 	private String projectName;
@@ -64,16 +68,19 @@ public class MutationTestExecuter {
 
 	public MutationTestExecuter(MutationTestConfiguration mutationTestConfiguration) {
 		this(mutationTestConfiguration.getProject(), mutationTestConfiguration.getLaunchConfig(),
-				mutationTestConfiguration.getIterations(), mutationTestConfiguration.getTimeout());
+				mutationTestConfiguration.getIterations(), mutationTestConfiguration.getTimeout(),
+				mutationTestConfiguration.getSkipInitialTests(), mutationTestConfiguration.getCreateCsvOutput());
 	}
 
 	public MutationTestExecuter(IProject tggProject, ILaunchConfiguration launchConfigFile, Integer iterations,
-			Integer timeout) {
+			Integer timeout, Boolean skipInitialTests, Boolean createCsvOutput) {
 		this.tggProject = tggProject;
 		this.launchConfigFile = launchConfigFile;
 		this.testIterations = iterations;
 		this.timeout = timeout;
+		this.skipInitialTests = skipInitialTests;
 		this.projectPath = tggProject.getLocation().toFile().toPath();
+		this.createCsvOutput = createCsvOutput;
 
 		projectName = tggProject.getName();
 
@@ -99,7 +106,11 @@ public class MutationTestExecuter {
 			LOGGER.error(e.getMessage(), e);
 		}
 
-		runInitialTests();
+		if (skipInitialTests) {
+			executeNextIteration();
+		} else {
+			runInitialTests();
+		}
 	}
 
 	private void runInitialTests() {
@@ -120,6 +131,7 @@ public class MutationTestExecuter {
 
 	void executeNextIteration() {
 		iterationCount++;
+		restoreOriginalRuleFile();
 		
 		try {
 			unloadTggRuleUtilResources();
@@ -142,24 +154,26 @@ public class MutationTestExecuter {
 				System.out.println(buildSuccess);
 				if (!buildSuccess) {
 					System.out.println("Unable to build project. ");
+					iterationCount--;
+					executeNextIteration();
+				} else {
+					System.out.println("Starting tests..");
+					DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 				}
-
-				System.out.println("Starting tests..");
-				DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
-
 			} else {
 				// TODO proper handling
 				System.out.println("Unable to mutate any rule in file");
-				iterationCount--;
-				executeNextIteration();
+				TestResultCollector.INSTANCE.finishProcessing();
 			}
 
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage(), e);
+			restoreOriginalRuleFile();
 		} catch (CoreException e) {
 			LOGGER.error(e.getMessage(), e);
-		} finally {
 			restoreOriginalRuleFile();
+		} finally {
+			
 		}
 	}
 
@@ -176,15 +190,15 @@ public class MutationTestExecuter {
 			job.schedule();
 			job.join();
 
-//		if (job.getResult().isOK()) {
-//			return true;
-//		} else {
-			// re-try build if failed once
-			Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
-			retryJob.schedule();
-			retryJob.join();
-			return retryJob.getResult().isOK();
-//		}
+//			if (job.getResult().isOK()) {
+//				return true;
+//			} else {
+				// re-try build if failed once
+				Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
+				retryJob.schedule();
+				retryJob.join();
+				return retryJob.getResult().isOK();
+//			}
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getMessage(), e);
 			return false;
@@ -206,12 +220,12 @@ public class MutationTestExecuter {
 	}
 
 	void restoreOriginalRuleFile() {
-		if (mutantResult == null || mutantResult.isInitialRun()) {
+		if (mutantResult == null || mutantResult.isInitialRun() || mutantResult.getMutantRule() == null) {
 			return;
 		}
 		System.out.println("--Restoring file");
 
-		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().path());
+		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().toPlatformString(true));
 		Path fileName = filePath.getFileName();
 		Path mutatedFilePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
 		Path backupFilePath = mutatedFilePath.resolveSibling(fileName + ".backup");
@@ -272,6 +286,14 @@ public class MutationTestExecuter {
 
 	public boolean isFinished() {
 		return iterationCount >= testIterations;
+	}
+
+	public Boolean getSkipInitialTests() {
+		return skipInitialTests;
+	}
+
+	public Boolean getCreateCsvOutput() {
+		return createCsvOutput;
 	}
 
 }

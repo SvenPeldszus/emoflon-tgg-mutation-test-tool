@@ -23,14 +23,20 @@ public class MutationTestConfiguration {
 	private Integer iterations;
 
 	private Integer timeout;
+	
+	private Boolean skipInitialTests;
+	
+	private Boolean createCsvOutput;
 
 	public MutationTestConfiguration(String label, IProject project, ILaunchConfiguration launchConfig,
-			Integer iterations, Integer timeout) {
+			Integer iterations, Integer timeout, Boolean skipInitialTests, Boolean createCsvOutput) {
 		this.label = label;
 		this.project = project;
 		this.launchConfig = launchConfig;
 		this.iterations = iterations;
 		this.timeout = timeout;
+		this.skipInitialTests = skipInitialTests;
+		this.createCsvOutput = createCsvOutput;
 	}
 
 	public MutationTestConfiguration(MutationTestSerializableConfig serializableConfig) {
@@ -50,7 +56,8 @@ public class MutationTestConfiguration {
 		
 		this.iterations = serializableConfig.getIterations();
 		this.timeout = serializableConfig.getTimeout();
-
+		this.skipInitialTests = serializableConfig.getSkipInitialTests();
+		this.createCsvOutput = serializableConfig.getCreateCsvOutput();
 	}
 
 	public String getLabel() {
@@ -91,6 +98,22 @@ public class MutationTestConfiguration {
 
 	public void setTimeout(Integer timeout) {
 		this.timeout = timeout;
+	}
+
+	public Boolean getSkipInitialTests() {
+		return skipInitialTests;
+	}
+
+	public void setSkipInitialTests(Boolean skipInitialTests) {
+		this.skipInitialTests = skipInitialTests;
+	}
+
+	public Boolean getCreateCsvOutput() {
+		return createCsvOutput;
+	}
+
+	public void setCreateCsvOutput(Boolean createCsvOutput) {
+		this.createCsvOutput = createCsvOutput;
 	}
 
 }

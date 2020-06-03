@@ -31,7 +31,7 @@ public class TestConfigurationSelectionPage extends WizardPage {
 	private MutationTestConfiguration configuration;
 
 	private MutationTestConfiguration newConfiguration = new MutationTestConfiguration("New configuration", null, null,
-			null, null);
+			null, null, null, null);
 
 	private WizardFlowControl flowControl;
 

@@ -37,29 +37,41 @@ public class TestResultCollector {
 	private Map<String, TestResult> initialRunData = new HashMap<>();
 
 	public void processTestResults(Map<String, String> testResultData) {
-
-		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
-		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult().getMutationName();
-
-		runCsvProcessing(testResultData);
+		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
+			runCsvProcessing(testResultData);
+		}
 
 		if (MutationTestExecuter.INSTANCE.getMutantResult().isInitialRun()) {
 			runInitialTestResultProcessing(testResultData);
 		} else {
+			if (MutationTestExecuter.INSTANCE.getSkipInitialTests() && initialRunData.isEmpty()) {
+				mockInitialRunData(testResultData);
+			}
 			runMutationTestResultProcessing(testResultData);
 		}
 
 		if (MutationTestExecuter.INSTANCE.isFinished()) {
-			writeCsvFile();
-			openResultView();
+			finishProcessing();
 		} else {
 			MutationTestExecuter.INSTANCE.executeNextIteration();
 		}
 	}
 
+	public void finishProcessing() {
+		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
+		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
+			writeCsvFile();
+		}
+		openResultView();
+	}
+
+	private void mockInitialRunData(Map<String, String> testResultData) {
+		testResultData.entrySet().forEach(entry -> initialRunData.put(entry.getKey(), TestResult.OK));
+	}
+
 	private void runInitialTestResultProcessing(Map<String, String> testResultData) {
 		testResultData.entrySet().forEach(
-				(entry) -> initialRunData.put(entry.getKey(), TestResult.mapStringToTestResult(entry.getValue())));
+				entry -> initialRunData.put(entry.getKey(), TestResult.mapStringToTestResult(entry.getValue())));
 	}
 
 	private void runMutationTestResultProcessing(Map<String, String> testResultData) {
@@ -67,7 +79,7 @@ public class TestResultCollector {
 		String ruleName = mutantResult.getMutantRule().getName();
 
 		MutationTestData mutationTestData = findMutationTestData(ruleName);
-		if(mutationTestData == null) {
+		if (mutationTestData == null) {
 			mutationTestData = new MutationTestData(ruleName);
 			mutationTestDataList.add(mutationTestData);
 		}
@@ -96,11 +108,12 @@ public class TestResultCollector {
 				testResultEntry.getKey(), testResultEntry.getValue())).forEach(resultData::add);
 	}
 
-	private void openResultView() {
+	public void openResultView() {
 		try {
 //			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
 //					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
-			PlatformUI.getWorkbench().getWorkbenchWindows()[0].getPages()[0].showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+			PlatformUI.getWorkbench().getWorkbenchWindows()[0].getPages()[0]
+					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
 		} catch (PartInitException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
