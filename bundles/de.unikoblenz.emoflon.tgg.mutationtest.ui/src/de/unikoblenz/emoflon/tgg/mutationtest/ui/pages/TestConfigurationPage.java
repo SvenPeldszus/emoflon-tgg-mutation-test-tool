@@ -10,6 +10,10 @@ public class TestConfigurationPage extends WizardPage{
     private Text iterations;
     
     private Text timeout;
+    
+    private Button skipInitial;
+    
+    private Button saveCsvData;
 
     public TestConfigurationPage() {
         super("Configuration");
@@ -24,17 +28,25 @@ public class TestConfigurationPage extends WizardPage{
         container.setLayout(layout);
         layout.numColumns = 2;
         
-        Label label1 = new Label(container, SWT.NONE);
-        label1.setText("iterations");
+        Label iterationsLabel = new Label(container, SWT.NONE);
+        iterationsLabel.setText("iterations");
 
         iterations = new Text(container, SWT.NONE);
         iterations.setText("");
         
-        Label label2 = new Label(container, SWT.NONE);
-        label2.setText("timeout");
+        Label timeoutLabel = new Label(container, SWT.NONE);
+        timeoutLabel.setText("timeout");
         
         timeout = new Text(container, SWT.NONE);
         timeout.setText("");
+        
+        Label skipLabel = new Label(container, SWT.NONE);
+        skipLabel.setText("skip initial tests?");
+        skipInitial = new Button(container, SWT.CHECK);
+        
+        Label saveCsvLabel = new Label(container, SWT.NONE);
+        saveCsvLabel.setText("save test data as CSV?");
+        saveCsvData = new Button(container, SWT.CHECK);
         
         
         timeout.addModifyListener(modifyEvent -> {
@@ -56,5 +68,13 @@ public class TestConfigurationPage extends WizardPage{
 
 	public String getTimeout() {
 		return timeout.getText();
+	}
+
+	public Boolean getSkipInitial() {
+		return skipInitial.getSelection();
+	}
+
+	public Boolean getSaveCsvData() {
+		return saveCsvData.getSelection();
 	}
 }

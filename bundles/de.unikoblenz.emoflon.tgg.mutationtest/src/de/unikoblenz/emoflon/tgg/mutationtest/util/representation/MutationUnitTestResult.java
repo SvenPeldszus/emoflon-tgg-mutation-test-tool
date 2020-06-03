@@ -9,7 +9,7 @@ public class MutationUnitTestResult {
 	public MutationUnitTestResult(TestResult testResult, TestResult initialTestResult) {
 		super();
 		this.testResult = testResult;
-		this.differentFromInitial = !testResult.equals(initialTestResult);
+		this.differentFromInitial = !testResult.equals(initialTestResult) && testResult != TestResult.UNDEFINED;
 	}
 
 	public TestResult getTestResult() {

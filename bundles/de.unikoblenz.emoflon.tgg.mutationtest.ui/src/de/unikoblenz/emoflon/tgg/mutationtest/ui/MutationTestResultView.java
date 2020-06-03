@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.ViewPart;
 
+import de.unikoblenz.emoflon.tgg.mutationtest.MutationTestExecuter;
 import de.unikoblenz.emoflon.tgg.mutationtest.TestResultCollector;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestData;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestResult;
@@ -42,7 +43,7 @@ public class MutationTestResultView extends ViewPart {
 		tree.setHeaderVisible(true);
 
 		TreeColumn ruleNameColumn = new TreeColumn(tree, SWT.CENTER);
-		ruleNameColumn.setText("Rule name");
+		ruleNameColumn.setText("Mutated rule");
 		ruleNameColumn.setWidth(200);
 
 		TreeColumn mutationDescriptionColumn = new TreeColumn(tree, SWT.CENTER);
@@ -69,7 +70,9 @@ public class MutationTestResultView extends ViewPart {
 
 		Map<String, TestResult> initialRunData = TestResultCollector.INSTANCE.getInitialRunData();
 		TreeItem initialRunRootItem = new TreeItem(tree, SWT.NONE);
-		initialRunRootItem.setText(new String[] { "initial run without mutation" });
+		String description = MutationTestExecuter.INSTANCE.getSkipInitialTests() ? "skipped, assumed all OK" : "";
+
+		initialRunRootItem.setText(new String[] { "initial run without mutation", description });
 		for (Entry<String, TestResult> initialRunResult : initialRunData.entrySet()) {
 			TreeItem childItem = new TreeItem(initialRunRootItem, SWT.NONE);
 			childItem.setText(new String[] { "", "", "", initialRunResult.getKey(),
@@ -107,7 +110,7 @@ public class MutationTestResultView extends ViewPart {
 		case ERROR:
 			return "Error";
 		default:
-			return "unknown result";
+			return "Unknown result";
 		}
 	}
 

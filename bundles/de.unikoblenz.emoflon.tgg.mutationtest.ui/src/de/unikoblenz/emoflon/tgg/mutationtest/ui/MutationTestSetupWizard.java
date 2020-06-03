@@ -88,9 +88,11 @@ public class MutationTestSetupWizard extends Wizard {
 			ILaunchConfiguration launchConfigFile = configSelectionPage.getLaunchConfiguration();
 			Integer iterations = Integer.valueOf(testConfigurationPage.getIterations());
 			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout());
+			Boolean skipInitial = testConfigurationPage.getSkipInitial();
+			Boolean saveCsvData = testConfigurationPage.getSaveCsvData();
 
 			MutationTestConfiguration configuration = new MutationTestConfiguration(configName, testProject,
-					launchConfigFile, iterations, timeout);
+					launchConfigFile, iterations, timeout, skipInitial, saveCsvData);
 
 			saveConfigurationToJsonFile(configuration);
 
@@ -106,7 +108,8 @@ public class MutationTestSetupWizard extends Wizard {
 			Gson gson = new Gson();
 
 			// TODO config location;
-			String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator + "config.json";
+			String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator
+					+ "config.json";
 
 			Set<MutationTestSerializableConfig> configs = new HashSet<>();
 
