@@ -131,7 +131,6 @@ public class MutationTestExecuter {
 
 	void executeNextIteration() {
 		iterationCount++;
-		restoreOriginalRuleFile();
 		
 		try {
 			unloadTggRuleUtilResources();

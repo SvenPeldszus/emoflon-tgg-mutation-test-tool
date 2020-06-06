@@ -39,13 +39,13 @@ public class MutationTestRunListener extends TestRunListener {
 			System.out.println("--------------------------------------My Tests finished");
 			System.out.println("Test run result: " + session.getTestResult(true));
 
-			Map<String, String> testResultData = Arrays.stream(session.getChildren())
+			Map<String, ITestElement.Result> testResultData = Arrays.stream(session.getChildren())
 					.filter(iTestElement -> iTestElement instanceof TestSuiteElement)
 					.map(iTestElement -> (TestSuiteElement) iTestElement)
 					.flatMap(this::testSuiteElementChildrenToStream)
 					.map(iTestElement -> (TestSuiteElement) iTestElement).map(this::printTestResult)
 					.collect(Collectors.toMap(testSuiteElement -> testSuiteElement.getTestName(),
-							testSuiteElement -> testSuiteElement.getTestResult(true).toString()));
+							testSuiteElement -> testSuiteElement.getTestResult(true)));
 			TestResultCollector.INSTANCE.processTestResults(testResultData);
 
 		}

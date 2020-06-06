@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jdt.junit.model.ITestElement.Result;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
@@ -17,7 +18,6 @@ import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestData;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationUnitTestResult;
-import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.TestResult;
 
 public class TestResultCollector {
 
@@ -34,14 +34,17 @@ public class TestResultCollector {
 
 	private List<MutationTestData> mutationTestDataList = new ArrayList<>();
 
-	private Map<String, TestResult> initialRunData = new HashMap<>();
+	private Map<String, Result> initialRunData = new HashMap<>();
 
-	public void processTestResults(Map<String, String> testResultData) {
+	public void processTestResults(Map<String, Result> testResultData) {
+		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
+
 		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
 			runCsvProcessing(testResultData);
 		}
 
-		if (MutationTestExecuter.INSTANCE.getMutantResult().isInitialRun()) {
+		if (MutationTestExecuter.INSTANCE.getMutantResult()
+				.isInitialRun()) {
 			runInitialTestResultProcessing(testResultData);
 		} else {
 			if (MutationTestExecuter.INSTANCE.getSkipInitialTests() && initialRunData.isEmpty()) {
@@ -58,25 +61,26 @@ public class TestResultCollector {
 	}
 
 	public void finishProcessing() {
-		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
 		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
 			writeCsvFile();
 		}
 		openResultView();
 	}
 
-	private void mockInitialRunData(Map<String, String> testResultData) {
-		testResultData.entrySet().forEach(entry -> initialRunData.put(entry.getKey(), TestResult.OK));
+	private void mockInitialRunData(Map<String, Result> testResultData) {
+		testResultData.entrySet()
+				.forEach(testResultEntry -> initialRunData.put(testResultEntry.getKey(), Result.OK));
 	}
 
-	private void runInitialTestResultProcessing(Map<String, String> testResultData) {
-		testResultData.entrySet().forEach(
-				entry -> initialRunData.put(entry.getKey(), TestResult.mapStringToTestResult(entry.getValue())));
+	private void runInitialTestResultProcessing(Map<String, Result> testResultData) {
+		testResultData.entrySet()
+				.forEach(testResultEntry -> initialRunData.put(testResultEntry.getKey(), testResultEntry.getValue()));
 	}
 
-	private void runMutationTestResultProcessing(Map<String, String> testResultData) {
+	private void runMutationTestResultProcessing(Map<String, Result> testResultData) {
 		MutantResult mutantResult = MutationTestExecuter.INSTANCE.getMutantResult();
-		String ruleName = mutantResult.getMutantRule().getName();
+		String ruleName = mutantResult.getMutantRule()
+				.getName();
 
 		MutationTestData mutationTestData = findMutationTestData(ruleName);
 		if (mutationTestData == null) {
@@ -86,10 +90,9 @@ public class TestResultCollector {
 
 		MutationTestResult mutationTestResult = new MutationTestResult(mutantResult.getMutationName());
 
-		for (Entry<String, String> testResultEntry : testResultData.entrySet()) {
+		for (Entry<String, Result> testResultEntry : testResultData.entrySet()) {
 			String methodName = testResultEntry.getKey();
-			TestResult testResult = TestResult.mapStringToTestResult(testResultEntry.getValue());
-			MutationUnitTestResult unitTestResult = new MutationUnitTestResult(testResult,
+			MutationUnitTestResult unitTestResult = new MutationUnitTestResult(testResultEntry.getValue(),
 					initialRunData.get(methodName));
 
 			mutationTestResult.addUnitTestResult(methodName, unitTestResult);
@@ -98,22 +101,31 @@ public class TestResultCollector {
 	}
 
 	private MutationTestData findMutationTestData(String ruleName) {
-		return mutationTestDataList.stream().filter(d -> ruleName.equals(d.getMutatedRule())).findFirst().orElse(null);
+		return mutationTestDataList.stream()
+				.filter(d -> ruleName.equals(d.getMutatedRule()))
+				.findFirst()
+				.orElse(null);
 	}
 
-	private void runCsvProcessing(Map<String, String> testResultData) {
-		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult().getMutationName();
+	private void runCsvProcessing(Map<String, Result> testResultData) {
+		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult()
+				.getMutationName();
 
-		testResultData.entrySet().stream().map(testResultEntry -> createResultDataArray(mutationName,
-				testResultEntry.getKey(), testResultEntry.getValue())).forEach(resultData::add);
+		testResultData.entrySet()
+				.stream()
+				.map(testResultEntry -> createResultDataArray(mutationName, testResultEntry.getKey(),
+						testResultEntry.getValue()
+								.toString()))
+				.forEach(resultData::add);
 	}
 
 	public void openResultView() {
 		try {
 //			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
 //					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
-			PlatformUI.getWorkbench().getWorkbenchWindows()[0].getPages()[0]
-					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+			PlatformUI.getWorkbench()
+					.getWorkbenchWindows()[0].getPages()[0]
+							.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
 		} catch (PartInitException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
@@ -121,7 +133,8 @@ public class TestResultCollector {
 
 	private void writeCsvFile() {
 		try {
-			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject().getName(), resultData);
+			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject()
+					.getName(), resultData);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
@@ -145,7 +158,7 @@ public class TestResultCollector {
 		return mutationTestDataList;
 	}
 
-	public Map<String, TestResult> getInitialRunData() {
+	public Map<String, Result> getInitialRunData() {
 		return initialRunData;
 	}
 
