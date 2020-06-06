@@ -14,6 +14,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
+import de.unikoblenz.emoflon.tgg.mutationtest.util.FileHandler;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestData;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.representation.MutationTestResult;
@@ -37,14 +38,12 @@ public class TestResultCollector {
 	private Map<String, Result> initialRunData = new HashMap<>();
 
 	public void processTestResults(Map<String, Result> testResultData) {
-		MutationTestExecuter.INSTANCE.restoreOriginalRuleFile();
 
 		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
 			runCsvProcessing(testResultData);
 		}
 
-		if (MutationTestExecuter.INSTANCE.getMutantResult()
-				.isInitialRun()) {
+		if (MutationTestExecuter.INSTANCE.getMutantResult().isInitialRun()) {
 			runInitialTestResultProcessing(testResultData);
 		} else {
 			if (MutationTestExecuter.INSTANCE.getSkipInitialTests() && initialRunData.isEmpty()) {
@@ -68,8 +67,7 @@ public class TestResultCollector {
 	}
 
 	private void mockInitialRunData(Map<String, Result> testResultData) {
-		testResultData.entrySet()
-				.forEach(testResultEntry -> initialRunData.put(testResultEntry.getKey(), Result.OK));
+		testResultData.entrySet().forEach(testResultEntry -> initialRunData.put(testResultEntry.getKey(), Result.OK));
 	}
 
 	private void runInitialTestResultProcessing(Map<String, Result> testResultData) {
@@ -79,8 +77,7 @@ public class TestResultCollector {
 
 	private void runMutationTestResultProcessing(Map<String, Result> testResultData) {
 		MutantResult mutantResult = MutationTestExecuter.INSTANCE.getMutantResult();
-		String ruleName = mutantResult.getMutantRule()
-				.getName();
+		String ruleName = mutantResult.getMutantRule().getName();
 
 		MutationTestData mutationTestData = findMutationTestData(ruleName);
 		if (mutationTestData == null) {
@@ -97,35 +94,30 @@ public class TestResultCollector {
 
 			mutationTestResult.addUnitTestResult(methodName, unitTestResult);
 		}
+		
+		FileHandler.INSTANCE.moveMutationFile(mutationTestResult.isMutationDetected());
+		FileHandler.INSTANCE.restoreOriginalRuleFile();
+				
 		mutationTestData.addMutationTestResult(mutationTestResult);
 	}
-
+	
 	private MutationTestData findMutationTestData(String ruleName) {
-		return mutationTestDataList.stream()
-				.filter(d -> ruleName.equals(d.getMutatedRule()))
-				.findFirst()
-				.orElse(null);
+		return mutationTestDataList.stream().filter(d -> ruleName.equals(d.getMutatedRule())).findFirst().orElse(null);
 	}
 
 	private void runCsvProcessing(Map<String, Result> testResultData) {
-		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult()
-				.getMutationName();
+		String mutationName = MutationTestExecuter.INSTANCE.getMutantResult().getMutationName();
 
-		testResultData.entrySet()
-				.stream()
-				.map(testResultEntry -> createResultDataArray(mutationName, testResultEntry.getKey(),
-						testResultEntry.getValue()
-								.toString()))
-				.forEach(resultData::add);
+		testResultData.entrySet().stream().map(testResultEntry -> createResultDataArray(mutationName,
+				testResultEntry.getKey(), testResultEntry.getValue().toString())).forEach(resultData::add);
 	}
 
 	public void openResultView() {
 		try {
 //			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
 //					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
-			PlatformUI.getWorkbench()
-					.getWorkbenchWindows()[0].getPages()[0]
-							.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
+			PlatformUI.getWorkbench().getWorkbenchWindows()[0].getPages()[0]
+					.showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
 		} catch (PartInitException e) {
 			LOGGER.error(e.getMessage(), e);
 		}
@@ -133,8 +125,7 @@ public class TestResultCollector {
 
 	private void writeCsvFile() {
 		try {
-			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject()
-					.getName(), resultData);
+			csvWriter.writeCsvFile(MutationTestExecuter.INSTANCE.getTggProject().getName(), resultData);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage(), e);
 		}

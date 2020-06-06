@@ -26,6 +26,7 @@ import org.gravity.eclipse.io.ExtensionFileVisitor;
 import org.moflon.core.build.MoflonBuildJob;
 import org.moflon.tgg.mosl.tgg.Rule;
 
+import de.unikoblenz.emoflon.tgg.mutationtest.util.FileHandler;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 
@@ -92,7 +93,7 @@ public class MutationTestExecuter {
 		System.out.println("-----------------------");
 
 		TestResultCollector.INSTANCE.clearResultDataList();
-
+		FileHandler.INSTANCE.prepareForNewRun();
 		prepareTggRuleFileList();
 
 		try {
@@ -136,7 +137,7 @@ public class MutationTestExecuter {
 			mutantResult = mutantRuleUtil.getMutantRule(rules);
 
 			if (mutantResult.isSuccess()) {
-				createRuleFileBackup();
+				FileHandler.INSTANCE.createRuleFileBackup();
 
 				// save new tgg data to the original tgg file
 				System.out.println("Saving file");
@@ -162,7 +163,7 @@ public class MutationTestExecuter {
 
 		} catch (IOException | CoreException e) {
 			LOGGER.error(e.getMessage(), e);
-			restoreOriginalRuleFile();
+			FileHandler.INSTANCE.restoreOriginalRuleFile();
 		}
 	}
 
@@ -191,42 +192,6 @@ public class MutationTestExecuter {
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getMessage(), e);
 			return false;
-		}
-	}
-
-	private void createRuleFileBackup() {
-		System.out.println("Creating backup");
-		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().toPlatformString(true));
-		Path sourcePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
-		Path fileName = filePath.getFileName();
-		Path targetPath = sourcePath.resolveSibling(fileName + ".backup");
-		System.out.println(sourcePath);
-		try {
-			Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-	}
-
-	void restoreOriginalRuleFile() {
-		if (mutantResult == null || mutantResult.isInitialRun() || mutantResult.getMutantRule() == null) {
-			return;
-		}
-		System.out.println("--Restoring file");
-
-		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().toPlatformString(true));
-		Path fileName = filePath.getFileName();
-		Path mutatedFilePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
-		Path backupFilePath = mutatedFilePath.resolveSibling(fileName + ".backup");
-
-		if (backupFilePath.toFile().exists()) {
-			try {
-				Files.move(backupFilePath, mutatedFilePath, StandardCopyOption.REPLACE_EXISTING);
-			} catch (IOException e) {
-				LOGGER.error(e.getMessage(), e);
-			}
-		} else {
-			System.out.println("Info: Backup file does not exist.");
 		}
 	}
 
