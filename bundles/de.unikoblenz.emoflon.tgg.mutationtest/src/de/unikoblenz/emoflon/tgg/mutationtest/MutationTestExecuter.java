@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -23,10 +22,10 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
-import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.gravity.eclipse.io.ExtensionFileVisitor;
 import org.moflon.core.build.MoflonBuildJob;
 import org.moflon.tgg.mosl.tgg.Rule;
+
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 
@@ -51,8 +50,6 @@ public class MutationTestExecuter {
 	private final Boolean createCsvOutput;
 
 	// runtime helper variables
-
-	private String projectName;
 
 	private List<IFile> tggRuleFiles;
 
@@ -81,8 +78,6 @@ public class MutationTestExecuter {
 		this.skipInitialTests = skipInitialTests;
 		this.projectPath = tggProject.getLocation().toFile().toPath();
 		this.createCsvOutput = createCsvOutput;
-
-		projectName = tggProject.getName();
 
 		INSTANCE = this;
 	}
@@ -165,14 +160,9 @@ public class MutationTestExecuter {
 				TestResultCollector.INSTANCE.finishProcessing();
 			}
 
-		} catch (IOException e) {
+		} catch (IOException | CoreException e) {
 			LOGGER.error(e.getMessage(), e);
 			restoreOriginalRuleFile();
-		} catch (CoreException e) {
-			LOGGER.error(e.getMessage(), e);
-			restoreOriginalRuleFile();
-		} finally {
-			
 		}
 	}
 
