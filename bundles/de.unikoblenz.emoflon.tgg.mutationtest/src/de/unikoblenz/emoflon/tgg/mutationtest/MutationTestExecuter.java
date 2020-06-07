@@ -1,10 +1,7 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,8 +53,6 @@ public class MutationTestExecuter {
 
 	private Integer iterationCount = 0;
 
-	private Path projectPath;
-
 	private MutantResult mutantResult;
 
 	private TGGMutantRuleUtil mutantRuleUtil;
@@ -77,7 +72,6 @@ public class MutationTestExecuter {
 		this.testIterations = iterations;
 		this.timeout = timeout;
 		this.skipInitialTests = skipInitialTests;
-		this.projectPath = tggProject.getLocation().toFile().toPath();
 		this.createCsvOutput = createCsvOutput;
 
 		INSTANCE = this;

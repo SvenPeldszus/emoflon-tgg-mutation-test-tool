@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.ui,
  com.google.gson;bundle-version="2.8.2",
  org.eclipse.swt,
  de.unikoblenz.emoflon.tgg.mutationtest,
- org.eclipse.jdt.junit.core
+ org.eclipse.jdt.junit.core,
+ org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest.ui
 Bundle-ActivationPolicy: lazy

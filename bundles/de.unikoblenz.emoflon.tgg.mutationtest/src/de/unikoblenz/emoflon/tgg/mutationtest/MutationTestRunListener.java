@@ -1,23 +1,16 @@
 package de.unikoblenz.emoflon.tgg.mutationtest;
 
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.notification.RunListener;
-
-import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
-
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.internal.junit.model.TestRunSession;
 import org.eclipse.jdt.internal.junit.model.TestSuiteElement;
 import org.eclipse.jdt.junit.TestRunListener;
 import org.eclipse.jdt.junit.model.ITestElement;
 import org.eclipse.jdt.junit.model.ITestRunSession;
-import org.eclipse.jdt.junit.model.ITestSuiteElement;
+
+import de.unikoblenz.emoflon.tgg.mutationtest.util.CsvWriter;
 
 public class MutationTestRunListener extends TestRunListener {
 
