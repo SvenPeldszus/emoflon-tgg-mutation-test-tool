@@ -19,14 +19,7 @@ public class WizardHandler extends AbstractHandler {
 		if (wizardDialog.open() == Window.OK) {
 			MutationTestExecuter mutationTestRunner = new MutationTestExecuter(mutationTestSetupWizard.getMutationTestConfiguration());
 			mutationTestRunner.executeTests();
-		}
-		
-//		try {
-//			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView("de.unikoblenz.emoflon.tgg.mutationtest.ui.MutationTestResultView");
-//		} catch (PartInitException e) {
-//			e.printStackTrace();
-//		}
-		
+		}	
 		return null;
 	}
 }
