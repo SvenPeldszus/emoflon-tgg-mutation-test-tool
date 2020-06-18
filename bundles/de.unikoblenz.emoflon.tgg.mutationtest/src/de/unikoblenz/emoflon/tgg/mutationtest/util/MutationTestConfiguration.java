@@ -1,8 +1,9 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util;
 
 import java.util.Arrays;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -10,9 +11,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.jface.dialogs.MessageDialog;
 
 public class MutationTestConfiguration {
+	
+	private static final Logger LOGGER = Logger.getLogger(MutationTestConfiguration.class);
 
 	private String label;
 
@@ -46,10 +48,16 @@ public class MutationTestConfiguration {
 		this.project = workspaceRoot.getProject(serializableConfig.getProjectName());
 
 		ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+		
 		try {
-			this.launchConfig = 
-					Arrays.asList(manager.getLaunchConfigurations()).stream()
-					.filter(config -> config.getName().equals(serializableConfig.getLaunchConfigName())).findFirst().get();
+			Optional<ILaunchConfiguration> launchConfigFile = Arrays.asList(manager.getLaunchConfigurations()).stream()
+			.filter(config -> config.getName().equals(serializableConfig.getLaunchConfigName())).findFirst();
+			
+			if(launchConfigFile.isPresent()) {
+				this.launchConfig = launchConfigFile.get();
+			} else {
+				LOGGER.info("Launch configuration not found: " + serializableConfig.getLaunchConfigName());
+			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
