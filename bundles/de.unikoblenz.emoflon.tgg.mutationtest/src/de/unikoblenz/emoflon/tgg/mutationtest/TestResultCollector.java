@@ -35,6 +35,8 @@ public class TestResultCollector {
 	private List<MutationTestData> mutationTestDataList = new ArrayList<>();
 
 	private Map<String, Result> initialRunData = new HashMap<>();
+	
+	private String finishInformation = "";
 
 	public void processTestResults(Map<String, Result> testResultData) {
 
@@ -52,6 +54,8 @@ public class TestResultCollector {
 		}
 
 		if (MutationTestExecuter.INSTANCE.isFinished()) {
+			System.out.println("All iterations done.");
+			setFinishInformation("All iterations done.");
 			finishProcessing();
 		} else {
 			MutationTestExecuter.INSTANCE.executeNextIteration();
@@ -59,6 +63,7 @@ public class TestResultCollector {
 	}
 
 	public void finishProcessing() {
+		LOGGER.info("Finished tests. Reason: " + finishInformation);
 		if (MutationTestExecuter.INSTANCE.getCreateCsvOutput()) {
 			writeCsvFile();
 		}
@@ -152,4 +157,14 @@ public class TestResultCollector {
 		return initialRunData;
 	}
 
+	public String getFinishInformation() {
+		return finishInformation;
+	}
+
+	public void setFinishInformation(String finishInformation) {
+		this.finishInformation = finishInformation;
+	}
+
+	
+	
 }
