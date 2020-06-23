@@ -6,6 +6,7 @@ import org.moflon.tgg.mosl.tgg.Rule;
 
 public class MutantResult {
 	String mutationName;
+	String description;
 	boolean success;
 
 	String nodeName;

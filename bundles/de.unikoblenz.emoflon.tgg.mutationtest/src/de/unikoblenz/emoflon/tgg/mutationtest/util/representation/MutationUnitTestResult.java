@@ -1,18 +1,20 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util.representation;
 
+import org.eclipse.jdt.junit.model.ITestElement.Result;
+
 public class MutationUnitTestResult {
 	
-	private TestResult testResult;
+	private Result testResult;
 	
 	private boolean differentFromInitial;
 
-	public MutationUnitTestResult(TestResult testResult, TestResult initialTestResult) {
+	public MutationUnitTestResult(Result testResult, Result initialTestResult) {
 		super();
 		this.testResult = testResult;
-		this.differentFromInitial = !testResult.equals(initialTestResult);
+		this.differentFromInitial = !testResult.equals(initialTestResult) && testResult != Result.UNDEFINED;
 	}
 
-	public TestResult getTestResult() {
+	public Result getTestResult() {
 		return testResult;
 	}
 

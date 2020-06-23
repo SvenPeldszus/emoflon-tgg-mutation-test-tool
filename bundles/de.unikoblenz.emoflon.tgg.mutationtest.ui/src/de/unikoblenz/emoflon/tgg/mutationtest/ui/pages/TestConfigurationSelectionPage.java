@@ -1,10 +1,5 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.ui.pages;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -17,21 +12,22 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
+import de.unikoblenz.emoflon.tgg.mutationtest.ui.util.ConfigurationFileHandler;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.util.WizardFlowControl;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfig;
 
 public class TestConfigurationSelectionPage extends WizardPage {
+	
+	private ConfigurationFileHandler configurationFileHandler = new ConfigurationFileHandler();
 
 	private MutationTestConfiguration configuration;
 
 	private MutationTestConfiguration newConfiguration = new MutationTestConfiguration("New configuration", null, null,
-			null, null);
+			null, null, null, null);
 
 	private WizardFlowControl flowControl;
 
@@ -83,34 +79,12 @@ public class TestConfigurationSelectionPage extends WizardPage {
 		viewer.add(newConfiguration);
 		viewer.setSelection(new StructuredSelection(viewer.getElementAt(0)), true);
 
-		Set<MutationTestSerializableConfig> configs = readConfigsFromFile();
+		Set<MutationTestSerializableConfig> configs = configurationFileHandler.readConfigsFromFile();
 		configs.stream().map(MutationTestConfiguration::new).forEach(viewer::add);
 
 		// required to avoid an error in the system
 		setControl(container);
 
-	}
-
-	private Set<MutationTestSerializableConfig> readConfigsFromFile() {
-		Gson gson = new Gson();
-
-		String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator + "config.json";
-
-		Set<MutationTestSerializableConfig> configs = new HashSet<>();
-
-		if (new File(jsonFile).exists()) {
-			try {
-				BufferedReader br = new BufferedReader(new FileReader(jsonFile));
-
-				configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
-				}.getType());
-				br.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return configs;
 	}
 
 	public boolean isNewConfigurationSelected() {

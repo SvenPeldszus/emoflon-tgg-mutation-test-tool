@@ -16,14 +16,13 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 
-public class ConfigSelectionPage extends WizardPage {
+public class LaunchConfigSelectionPage extends WizardPage {
 
 	private ILaunchConfiguration launchConfiguration;
 
-	public ConfigSelectionPage() {
+	public LaunchConfigSelectionPage() {
 		super("Config Selection");
 		setTitle("Config Selection");
 		setDescription("Select the test launch configuration containing the tests for the selected project.");

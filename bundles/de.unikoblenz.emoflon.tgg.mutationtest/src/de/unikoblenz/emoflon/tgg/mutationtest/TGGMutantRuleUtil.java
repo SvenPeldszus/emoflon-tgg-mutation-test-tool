@@ -95,7 +95,6 @@ public class TGGMutantRuleUtil {
 						rule = tempRule;
 					}
 				}
-				
 				// Perform mutations
 				List<Integer> mutantIndexesList = new ArrayList<>(mutantIndexes);
 				Collections.shuffle(mutantIndexesList);
@@ -127,6 +126,7 @@ public class TGGMutantRuleUtil {
 						// Add target pattern node
 						mutantResult = addAMutant_AddPattern(rule, false);
 						break;
+
 					default:
 						mutantResult = null;
 					}
@@ -136,12 +136,15 @@ public class TGGMutantRuleUtil {
 						return mutantResult;
 					}
 				}
+				// Save appliedIndexes to HashMap
+				appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);			
 			}
 			
 			mutantResult = new MutantResult(null);
 			mutantResult.setSuccess(false);
 			mutantResult.setErrorText("All possible mutants for all rules in a file have been already checked ");
 			return mutantResult;					
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -166,16 +169,18 @@ public class TGGMutantRuleUtil {
 		Schema schema;
 
 		MutantResult mutantResult = new MutantResult(rule);
-		mutantResult.setMutationName(isSourceNode ? "AddourcePattern" : "AddTargetPattern");
+		mutantResult.setMutationName(isSourceNode ? "AddSourcePattern" : "AddTargetPattern");
 
 		try {
 			schema = rule.getSchema();
 			if (schema == null) {
+				mutantResult.setErrorText("schema is null");
 				return mutantResult;
 			}
 
 			nodes = isSourceNode ? rule.getSourcePatterns() : rule.getTargetPatterns();
 			if (nodes == null || nodes.size() == 0) {
+				mutantResult.setErrorText("SourcePatterns or TargetPatterns are null");
 				return mutantResult;
 			}
 
@@ -203,10 +208,11 @@ public class TGGMutantRuleUtil {
 
 				List<String> listLinkNames = new ArrayList<String>();
 				listLinkNames.add(link.getType().getName());
+				
+				mutantResult.setSuccess(true);
 				fillMutantDeleteResult(mutantResult, newNode, listLinkNames, null, targetObject.getName());
 			}
-
-			mutantResult.setSuccess(true);
+			
 			return mutantResult;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -297,6 +303,7 @@ public class TGGMutantRuleUtil {
 		mutantResult.setMutationName("AddCorrespondence");
 
 		if (corrObjects == null) {
+			mutantResult.setErrorText("CorrespondencePatterns are null");
 			return mutantResult;
 		}
 
@@ -326,8 +333,11 @@ public class TGGMutantRuleUtil {
 			targetObjects = rule.getTargetPatterns();
 
 			if (schema == null || corrList == null || sourceObjects == null || targetObjects == null
-					|| sourceObjects.size() == 0 || targetObjects.size() == 0)
+					|| sourceObjects.size() == 0 || targetObjects.size() == 0) {
+				mutantResult.setErrorText("schema, CorrespondencePatterns, SourcePatterns or TargetPatterns is null");
 				return null;
+			}
+				
 
 			// Get type
 			List<CorrType> corrTypes = schema.getCorrespondenceTypes();
@@ -354,7 +364,7 @@ public class TGGMutantRuleUtil {
 			return correspondence;
 		} catch (Exception e) {
 			e.printStackTrace();
-			mutantResult.setErrorText(e.getMessage());
+			mutantResult.setErrorText("createCorrespondenceNode: " + e.getMessage());
 			return null;
 		}
 	}
@@ -377,6 +387,7 @@ public class TGGMutantRuleUtil {
 			EList<CorrVariablePattern> corrPatterns = rule.getCorrespondencePatterns();
 
 			if (corrPatterns == null || corrPatterns.size() == 0) {
+				mutantResult.setErrorText("SourcePatterns or TargetPatterns is null");
 				return mutantResult;
 			}
 

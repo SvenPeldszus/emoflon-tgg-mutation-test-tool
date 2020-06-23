@@ -1,30 +1,19 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.ui;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import de.unikoblenz.emoflon.tgg.mutationtest.MutationTestExecuter;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.ConfigCreationInputPage;
-import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.ConfigSelectionPage;
+import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.LaunchConfigSelectionPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.PlaceholderPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.ProjectSelectionPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.TestConfigurationPage;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.pages.TestConfigurationSelectionPage;
+import de.unikoblenz.emoflon.tgg.mutationtest.ui.util.ConfigurationFileHandler;
 import de.unikoblenz.emoflon.tgg.mutationtest.ui.util.WizardFlowControl;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestConfiguration;
-import de.unikoblenz.emoflon.tgg.mutationtest.util.MutationTestSerializableConfig;
 
 public class MutationTestSetupWizard extends Wizard {
 
@@ -38,11 +27,13 @@ public class MutationTestSetupWizard extends Wizard {
 
 	private ProjectSelectionPage projectSelectionPage = new ProjectSelectionPage();
 
-	private ConfigSelectionPage configSelectionPage = new ConfigSelectionPage();
+	private LaunchConfigSelectionPage configSelectionPage = new LaunchConfigSelectionPage();
 
 	private TestConfigurationPage testConfigurationPage = new TestConfigurationPage();
 
 	private MutationTestConfiguration mutationTestConfiguration;
+	
+	private ConfigurationFileHandler configurationFileHandler = new ConfigurationFileHandler();
 
 	@Override
 	public void addPages() {
@@ -88,51 +79,21 @@ public class MutationTestSetupWizard extends Wizard {
 			ILaunchConfiguration launchConfigFile = configSelectionPage.getLaunchConfiguration();
 			Integer iterations = Integer.valueOf(testConfigurationPage.getIterations());
 			Integer timeout = Integer.valueOf(testConfigurationPage.getTimeout());
+			Boolean skipInitial = testConfigurationPage.getSkipInitial();
+			Boolean saveCsvData = testConfigurationPage.getSaveCsvData();
 
 			MutationTestConfiguration configuration = new MutationTestConfiguration(configName, testProject,
-					launchConfigFile, iterations, timeout);
+					launchConfigFile, iterations, timeout, skipInitial, saveCsvData);
 
-			saveConfigurationToJsonFile(configuration);
+			if (configCreationInputPage.isSaveConfig()) {
+				configurationFileHandler.saveConfigurationToJsonFile(configuration);
+			}
 
 			mutationTestConfiguration = configuration;
 		} else {
 			mutationTestConfiguration = testConfigSelectionPage.getConfiguration();
 		}
 		return true;
-	}
-
-	private void saveConfigurationToJsonFile(MutationTestConfiguration configuration) {
-		if (configCreationInputPage.isSaveConfig()) {
-			Gson gson = new Gson();
-
-			// TODO config location;
-			String jsonFile = System.getProperty("user.home") + File.separator + "emoflon" + File.separator + "config.json";
-
-			Set<MutationTestSerializableConfig> configs = new HashSet<>();
-
-			if (new File(jsonFile).exists()) {
-				try (BufferedReader br = new BufferedReader(new FileReader(jsonFile))) {
-					configs = gson.fromJson(br, new TypeToken<HashSet<MutationTestSerializableConfig>>() {
-					}.getType());
-					br.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-			configs.add(new MutationTestSerializableConfig(configuration));
-
-			String json = gson.toJson(configs);
-			try (FileWriter writer = new FileWriter(jsonFile)) {
-				writer.write(json);
-				writer.close();
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-		}
 	}
 
 	public MutationTestConfiguration getMutationTestConfiguration() {
