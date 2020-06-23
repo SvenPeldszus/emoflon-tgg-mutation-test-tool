@@ -1,6 +1,5 @@
 package de.unikoblenz.emoflon.tgg.mutationtest.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,13 +22,13 @@ public class FileHandler {
 
 	private static final Path UNDETECTED_DIR_NAME = Paths.get("undetected");
 	private static final Path DETECTED_DIR_NAME = Paths.get("detected");
-	
+
 	private static final Path DEBUG_HOME_DIR = Paths.get(System.getProperty("user.home"), "emoflon", "debug");
 
 	private Path projectPath;
 	private Path detectedDirPath;
 	private Path undetectedDirPath;
-	
+
 	private String startTimeString;
 
 	public void prepareForNewRun() {
@@ -116,18 +115,18 @@ public class FileHandler {
 	}
 
 	public void storeMutationFileForDebug() {
-		if(!DEBUG_HOME_DIR.toFile().exists()) {
+		if (!DEBUG_HOME_DIR.toFile().exists()) {
 			DEBUG_HOME_DIR.toFile().mkdirs();
 		}
-		
+
 		MutantResult mutantResult = MutationTestExecuter.INSTANCE.getMutantResult();
 		Path filePath = Paths.get(mutantResult.getMutantRule().eResource().getURI().toPlatformString(true));
 		Path fileName = filePath.getFileName();
 		Path mutatedFilePath = projectPath.resolve(filePath.subpath(1, filePath.getNameCount()));
-		
+
 		Path testRunDebugDir = DEBUG_HOME_DIR.resolve(startTimeString);
 		testRunDebugDir.toFile().mkdirs();
-		
+
 		Path destinationPath = testRunDebugDir.resolve(fileName);
 
 		// TODO debug

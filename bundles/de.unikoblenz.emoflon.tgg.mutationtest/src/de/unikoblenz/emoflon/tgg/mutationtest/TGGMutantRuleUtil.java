@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,63 +33,60 @@ import org.moflon.tgg.mosl.tgg.TggFactory;
 
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 
-
 public class TGGMutantRuleUtil {
-	
+
 	private final String DEFAULT_OPERATOR = "++";
-	
+
 	private HashMap<String, Set<Integer>> appliedMutantsAndIndexesHash;
-			
+
 	/**
-	 * Creates a new mutant rule util 
+	 * Creates a new mutant rule util
 	 */
-	public TGGMutantRuleUtil() throws  CoreException {
-		appliedMutantsAndIndexesHash = new HashMap<String, Set<Integer>>(); 
+	public TGGMutantRuleUtil() throws CoreException {
+		appliedMutantsAndIndexesHash = new HashMap<String, Set<Integer>>();
 	}
-	
+
 	public MutantResult getMutantRule(List<Rule> rules) {
 		Rule rule = null;
 		MutantResult mutantResult = null;
-		String ruleName = "temp rule"; 
-		try {			
+		String ruleName = "temp rule";
+		try {
 			if (rules == null || rules.isEmpty()) {
 				return null;
-			}			
-			
+			}
+
 			Set<Integer> appliedIndexes = new HashSet<Integer>();
-			Set<Integer> mutantIndexes = new HashSet<Integer>(); 
-			mutantIndexes.addAll(Arrays.asList(new Integer[] {0, 1, 2, 3, 4})); 	
-			
+			Set<Integer> mutantIndexes = new HashSet<Integer>();
+			mutantIndexes.addAll(Arrays.asList(new Integer[] { 0, 1, 2, 3, 4 }));
+
 			ArrayList<Rule> listRule = new ArrayList<>(rules);
 			Collections.shuffle(listRule);
-			while(!listRule.isEmpty()) {
+			while (!listRule.isEmpty()) {
 				Rule tempRule = listRule.remove(0);
-				
+
 				// Skip empty rules
 				if (tempRule == null) {
 					continue;
 				}
-				
+
 				// Should be an item HashMap key
-				ruleName = tempRule.getName();			
+				ruleName = tempRule.getName();
 				appliedIndexes = appliedMutantsAndIndexesHash.get(ruleName);
-				
-				// Check if there is already a list for the current key(rule) 				
-				if(appliedIndexes == null) { 	
+
+				// Check if there is already a list for the current key(rule)
+				if (appliedIndexes == null) {
 					// If not, continue working with this rule
 					rule = tempRule;
 					appliedIndexes = new HashSet<Integer>();
-				}
-				else {
+				} else {
 					// Check if all mutants for the current rule has been already applied
 					if (appliedIndexes.size() == mutantIndexes.size()) {
 						// If so, try another rule
-						continue;						
-					}
-					else {
+						continue;
+					} else {
 						// Delete applied indexes from mutantIndexes
 						mutantIndexes.removeAll(appliedIndexes);
-						
+
 						// And continue working with this rule
 						rule = tempRule;
 					}
@@ -104,11 +100,11 @@ public class TGGMutantRuleUtil {
 				for (Integer mutantIndex : mutantIndexesList) {
 					// Add index, which will be applied to the list
 					appliedIndexes.add(mutantIndex);
-					
+
 					switch (mutantIndex) {
 					case 0:
 						// Delete source pattern node
-						mutantResult = addMutant_DeletePattern(rule, true);						
+						mutantResult = addMutant_DeletePattern(rule, true);
 						break;
 					case 1:
 						// Delete target pattern node
@@ -131,19 +127,19 @@ public class TGGMutantRuleUtil {
 						mutantResult = null;
 					}
 					// Save appliedIndexes to HashMap
-					appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);	
+					appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);
 					if (mutantResult.isSuccess()) {
 						return mutantResult;
 					}
 				}
 				// Save appliedIndexes to HashMap
-				appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);			
+				appliedMutantsAndIndexesHash.put(ruleName, appliedIndexes);
 			}
-			
+
 			mutantResult = new MutantResult(null);
 			mutantResult.setSuccess(false);
 			mutantResult.setErrorText("All possible mutants for all rules in a file have been already checked ");
-			return mutantResult;					
+			return mutantResult;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -208,11 +204,11 @@ public class TGGMutantRuleUtil {
 
 				List<String> listLinkNames = new ArrayList<String>();
 				listLinkNames.add(link.getType().getName());
-				
+
 				mutantResult.setSuccess(true);
 				fillMutantDeleteResult(mutantResult, newNode, listLinkNames, null, targetObject.getName());
 			}
-			
+
 			return mutantResult;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -262,7 +258,7 @@ public class TGGMutantRuleUtil {
 			ObjectVariablePattern targetObject, Operator op, MutantResult mutantResult) {
 		try {
 			EClass targetType = targetObject.getType();
-			
+
 			if (targetType.isAbstract()) {
 				return null;
 			}
@@ -337,7 +333,6 @@ public class TGGMutantRuleUtil {
 				mutantResult.setErrorText("schema, CorrespondencePatterns, SourcePatterns or TargetPatterns is null");
 				return null;
 			}
-				
 
 			// Get type
 			List<CorrType> corrTypes = schema.getCorrespondenceTypes();

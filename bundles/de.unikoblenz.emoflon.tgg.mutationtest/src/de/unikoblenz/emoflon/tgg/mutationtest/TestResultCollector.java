@@ -35,7 +35,7 @@ public class TestResultCollector {
 	private List<MutationTestData> mutationTestDataList = new ArrayList<>();
 
 	private Map<String, Result> initialRunData = new HashMap<>();
-	
+
 	private String finishInformation = "";
 
 	public void processTestResults(Map<String, Result> testResultData) {
@@ -98,13 +98,13 @@ public class TestResultCollector {
 
 			mutationTestResult.addUnitTestResult(methodName, unitTestResult);
 		}
-		
+
 		FileHandler.INSTANCE.moveMutationFile(mutationTestResult.isMutationDetected());
 		FileHandler.INSTANCE.restoreOriginalRuleFile();
-				
+
 		mutationTestData.addMutationTestResult(mutationTestResult);
 	}
-	
+
 	private MutationTestData findMutationTestData(String ruleName) {
 		return mutationTestDataList.stream().filter(d -> ruleName.equals(d.getMutatedRule())).findFirst().orElse(null);
 	}
@@ -165,6 +165,4 @@ public class TestResultCollector {
 		this.finishInformation = finishInformation;
 	}
 
-	
-	
 }

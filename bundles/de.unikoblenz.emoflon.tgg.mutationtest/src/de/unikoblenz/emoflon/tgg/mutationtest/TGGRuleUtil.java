@@ -14,11 +14,10 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
-
-import org.emoflon.ibex.tgg.ide.admin.IbexTGGNature;
 
 /**
  * A utility class for loading and serializing TGG specifications
@@ -47,7 +46,7 @@ public class TGGRuleUtil {
 		schemaResource.load(schemaFile.getContents(), Collections.emptyMap());
 		EcoreUtil.resolveAll(resourceSet);
 	}
-	
+
 	public void unloadResources() {
 		resourceSet.getResources().forEach(Resource::unload);
 	}
@@ -91,7 +90,7 @@ public class TGGRuleUtil {
 		EcoreUtil.resolveAll(resourceSet);
 		return ((TripleGraphGrammarFile) ruleResource.getContents().get(0)).getRules();
 	}
-	
+
 	public Schema getSchema() {
 		return (Schema) ((TripleGraphGrammarFile) schemaResource.getContents().get(0)).getSchema();
 	}
