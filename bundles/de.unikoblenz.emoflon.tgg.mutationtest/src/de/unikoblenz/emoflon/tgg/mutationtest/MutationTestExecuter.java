@@ -8,11 +8,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -31,7 +34,7 @@ public class MutationTestExecuter {
 
 	public static MutationTestExecuter INSTANCE;
 
-	private static final Logger LOGGER = Logger.getLogger(MutationTestExecuter.class);
+	private static final Logger LOGGER = LogManager.getLogger(MutationTestExecuter.class);
 
 	// test setup variables
 
@@ -59,6 +62,8 @@ public class MutationTestExecuter {
 
 	private TGGRuleUtil tggRuleUtil;
 
+	private long startTime;
+
 	public MutationTestExecuter(MutationTestConfiguration mutationTestConfiguration) {
 		this(mutationTestConfiguration.getProject(), mutationTestConfiguration.getLaunchConfig(),
 				mutationTestConfiguration.getIterations(), mutationTestConfiguration.getTimeout(),
@@ -75,16 +80,18 @@ public class MutationTestExecuter {
 		this.createCsvOutput = createCsvOutput;
 
 		INSTANCE = this;
+
+		startTime = System.currentTimeMillis();
 	}
 
 	public void executeTests() {
-		System.out.println("-----------------------");
-		System.out.println("Wizard config:");
-		System.out.println("project: " + tggProject);
-		System.out.println("launch config: " + launchConfigFile);
-		System.out.println("iterations: " + testIterations);
-		System.out.println("timeout: " + timeout);
-		System.out.println("-----------------------");
+		LOGGER.info("-----------------------");
+		LOGGER.info("Wizard config:");
+		LOGGER.info("project: " + tggProject);
+		LOGGER.info("launch config: " + launchConfigFile);
+		LOGGER.info("iterations: " + testIterations);
+		LOGGER.info("timeout: " + timeout);
+		LOGGER.info("-----------------------");
 
 		TestResultCollector.INSTANCE.clearResultDataList();
 		FileHandler.INSTANCE.prepareForNewRun();
@@ -97,31 +104,40 @@ public class MutationTestExecuter {
 		}
 
 		if (skipInitialTests) {
+			LOGGER.info("Skipping initial test run");
 			executeNextIteration();
 		} else {
+			LOGGER.info("Starting initial test run");
 			runInitialTests();
 		}
 	}
 
 	private void runInitialTests() {
+
 		mutantResult = new MutantResult(null);
 		mutantResult.setInitialRun(true);
 
-		System.out.println("Starting build");
+		// TODO debug
+		LOGGER.info("Starting build");
 		boolean buildSuccess = buildProject();
-		System.out.println("build success: " + buildSuccess);
+		System.out.println("Build successful: " + buildSuccess);
 		if (!buildSuccess) {
-			System.out.println("Unable to build project. Aborting tests");
+			LOGGER.info("Unable to build project. Aborting tests");
 			return;
 		}
 
-		System.out.println("Starting tests..");
+		// TODO debug
+		LOGGER.info("Starting initial tests.");
 		DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 	}
 
 	void executeNextIteration() {
-		iterationCount++;
-		
+		if (isTimeoutReached()) {
+			TestResultCollector.INSTANCE.setFinishInformation("Timeout reached.");
+			TestResultCollector.INSTANCE.finishProcessing();
+		}
+		LOGGER.info("Starting iteration: " + iterationCount);
+
 		try {
 			unloadTggRuleUtilResources();
 			tggRuleUtil = new TGGRuleUtil(tggProject);
@@ -134,24 +150,28 @@ public class MutationTestExecuter {
 				FileHandler.INSTANCE.createRuleFileBackup();
 
 				// save new tgg data to the original tgg file
-				System.out.println("Saving file");
 				mutantResult.getMutantRule().eResource().save(Collections.emptyMap());
 
 				// build the project with the new TGG file
-				System.out.println("Starting build");
+				// TODO debug
+				LOGGER.info("Starting build");
 				boolean buildSuccess = buildProject();
 				System.out.println(buildSuccess);
 				if (!buildSuccess) {
-					System.out.println("Unable to build project. ");
-					iterationCount--;
+					LOGGER.info("Unable to build project. Restoring file and retrying iteration.");
+					FileHandler.INSTANCE.storeMutationFileForDebug();
+					FileHandler.INSTANCE.restoreOriginalRuleFile();
 					executeNextIteration();
 				} else {
-					System.out.println("Starting tests..");
+					// TODO debug
+					LOGGER.info("Build successful");
+					// TODO debug
+					LOGGER.info("Starting tests..");
+					iterationCount++;
 					DebugUITools.launch(launchConfigFile, ILaunchManager.RUN_MODE);
 				}
 			} else {
-				// TODO proper handling
-				System.out.println("Unable to mutate any rule in file");
+				TestResultCollector.INSTANCE.setFinishInformation("No more mutations possible.");
 				TestResultCollector.INSTANCE.finishProcessing();
 			}
 
@@ -177,11 +197,11 @@ public class MutationTestExecuter {
 //			if (job.getResult().isOK()) {
 //				return true;
 //			} else {
-				// re-try build if failed once
-				Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
-				retryJob.schedule();
-				retryJob.join();
-				return retryJob.getResult().isOK();
+			// re-try build if failed once
+			Job retryJob = new MoflonBuildJob(Arrays.asList(tggProject), IncrementalProjectBuilder.FULL_BUILD);
+			retryJob.schedule();
+			retryJob.join();
+			return retryJob.getResult().isOK();
 //			}
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getMessage(), e);
@@ -233,7 +253,19 @@ public class MutationTestExecuter {
 	}
 
 	public boolean isFinished() {
-		return iterationCount >= testIterations;
+		return testIterations != 0 && iterationCount >= testIterations;
+	}
+
+	private boolean isTimeoutReached() {
+		if (timeout == 0) {
+			return false;
+		}
+
+		long currentTime = System.currentTimeMillis();
+
+		long timeoutMillis = timeout * 60 * 1000;
+
+		return timeoutMillis > currentTime - startTime;
 	}
 
 	public Boolean getSkipInitialTests() {
