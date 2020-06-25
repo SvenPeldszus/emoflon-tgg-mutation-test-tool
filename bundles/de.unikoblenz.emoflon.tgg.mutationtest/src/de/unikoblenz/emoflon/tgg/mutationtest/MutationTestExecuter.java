@@ -173,7 +173,7 @@ public class MutationTestExecuter {
 				TestResultCollector.INSTANCE.finishProcessing();
 			}
 
-		} catch (IOException | CoreException e) {
+		} catch (IOException | CoreException | NullPointerException e) {
 			LOGGER.error(e.getMessage(), e);
 			FileHandler.INSTANCE.restoreOriginalRuleFile();
 		}

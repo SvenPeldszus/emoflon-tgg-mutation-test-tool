@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
@@ -34,6 +36,8 @@ import org.moflon.tgg.mosl.tgg.TggFactory;
 import de.unikoblenz.emoflon.tgg.mutationtest.util.MutantResult;
 
 public class TGGMutantRuleUtil {
+	
+	private static final Logger LOGGER = LogManager.getLogger(TGGMutantRuleUtil.class);
 
 	private final String DEFAULT_OPERATOR = "++";
 
@@ -57,11 +61,11 @@ public class TGGMutantRuleUtil {
 
 			Set<Integer> appliedIndexes = new HashSet<Integer>();
 			Set<Integer> mutantIndexes = new HashSet<Integer>();
-			mutantIndexes.addAll(Arrays.asList(new Integer[] { 0, 1, 2, 3, 4 }));
 
 			ArrayList<Rule> listRule = new ArrayList<>(rules);
 			Collections.shuffle(listRule);
 			while (!listRule.isEmpty()) {
+				mutantIndexes.addAll(Arrays.asList(new Integer[] { 0, 1, 2, 3, 4 }));
 				Rule tempRule = listRule.remove(0);
 
 				// Skip empty rules
@@ -142,7 +146,7 @@ public class TGGMutantRuleUtil {
 			return mutantResult;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			return null;
 		}
 	}
@@ -211,7 +215,7 @@ public class TGGMutantRuleUtil {
 
 			return mutantResult;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("addAMutant_AddPattern: " + e.getMessage());
 			return mutantResult;
 		}
@@ -248,7 +252,7 @@ public class TGGMutantRuleUtil {
 
 			return node;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("createNode: " + e.getMessage());
 			return null;
 		}
@@ -279,7 +283,7 @@ public class TGGMutantRuleUtil {
 
 			return null;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("createLinkEdge: " + e.getMessage());
 			return null;
 		}
@@ -358,7 +362,7 @@ public class TGGMutantRuleUtil {
 
 			return correspondence;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("createCorrespondenceNode: " + e.getMessage());
 			return null;
 		}
@@ -394,7 +398,7 @@ public class TGGMutantRuleUtil {
 			mutantResult.setSuccess(true);
 			return mutantResult;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText(e.getMessage());
 			return mutantResult;
 		}
@@ -434,7 +438,7 @@ public class TGGMutantRuleUtil {
 			mutantResult.setSuccess(deleteNode(nodes, correspondenceList, attrConditions, isSourceNode, mutantResult));
 			return mutantResult;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("addMutant_DeleteCorrespondencePattern: " + e.getMessage());
 			return mutantResult;
 		}
@@ -487,7 +491,7 @@ public class TGGMutantRuleUtil {
 
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("deleteNode: " + e.getMessage());
 			return false;
 		}
@@ -511,7 +515,7 @@ public class TGGMutantRuleUtil {
 			mutantResult.setErrorText("It is not possible to delete a single node so that a model is valid");
 			return null;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 			mutantResult.setErrorText("getNodeToDelete: " + e.getMessage());
 			return null;
 		}
