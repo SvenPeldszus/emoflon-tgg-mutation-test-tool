@@ -1,14 +1,19 @@
 Manifest-Version: 1.0
-Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest.ui
-Bundle-SymbolicName: de.unikoblenz.emoflon.tgg.mutationtest.ui
-Require-Bundle: org.eclipse.ui,org.eclipse.core.runtime
 Bundle-ManifestVersion: 2
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ActivationPolicy: lazy
-Bundle-Vendor: RGSE - University of Koblenz-Landau
-Export-Package: de.unikoblenz.emoflon.tgg.mutationtest.ui
 Bundle-Name: eMoflon TGG Mutation Test UI
-Bundle-Version: 1.0.0.201909022014
-Bundle-ClassPath: .
+Bundle-SymbolicName: de.unikoblenz.emoflon.tgg.mutationtest.ui;singleton
+ :=true
+Bundle-Version: 1.0.0.202012150913
 Bundle-Activator: de.unikoblenz.emoflon.tgg.mutationtest.ui.Activator
+Bundle-Vendor: RGSE - University of Koblenz-Landau
+Require-Bundle: org.eclipse.ui,org.eclipse.debug.core,org.eclipse.core.r
+ untime,org.eclipse.core.resources,com.google.gson,org.eclipse.swt,de.un
+ ikoblenz.emoflon.tgg.mutationtest,org.eclipse.jdt.junit.core,org.apache
+ .log4j
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: de.unikoblenz.emoflon.tgg.mutationtest.ui
+Bundle-ActivationPolicy: lazy
+Export-Package: de.unikoblenz.emoflon.tgg.mutationtest.ui,de.unikoblenz.
+ emoflon.tgg.mutationtest.ui.util
+Bundle-ClassPath: .
 
