@@ -1,2 +1,0 @@
-INDEX VERSION 1.131+/home/speldszus/Documents/git/emoflon-tgg-mutation-test-tool/tests/de.unikoblenz.emoflon.tgg.mutationtest.tests/target/work/data/.metadata/.plugins/org.eclipse.jdt.core
-646308851.index

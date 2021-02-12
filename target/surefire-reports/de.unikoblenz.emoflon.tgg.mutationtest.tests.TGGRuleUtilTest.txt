@@ -1,6 +1,0 @@
--------------------------------------------------------------------------------
-Test set: de.unikoblenz.emoflon.tgg.mutationtest.tests.TGGRuleUtilTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.867 s - in de.unikoblenz.emoflon.tgg.mutationtest.tests.TGGRuleUtilTest
-loadTGGRuleTest(de.unikoblenz.emoflon.tgg.mutationtest.tests.TGGRuleUtilTest)  Time elapsed: 13.595 s
-serializeTGGRuleTest(de.unikoblenz.emoflon.tgg.mutationtest.tests.TGGRuleUtilTest)  Time elapsed: 1.108 s
